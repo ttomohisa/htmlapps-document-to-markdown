@@ -6,6 +6,7 @@ All notable changes to this project are documented here.
 
 ### Fixed
 
+- Hide image-specific export controls for results with no embedded images, including clear/retry transitions.
 - Preserve DOCX list numbering inherited through paragraph styles and `basedOn`; honor explicit numbering removal (`numId=0`) and guard malformed style cycles.
 - Keep compact EN / JA language actions, localized labels/tooltips, and the actual version visible in narrow headers.
 

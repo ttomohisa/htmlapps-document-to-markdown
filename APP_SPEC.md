@@ -144,7 +144,7 @@ Generated Markdown uses a GitHub-Flavored-Markdown-compatible subset where pract
 
 Each successful conversion exposes three result views:
 
-- **Markdown** — selectable source with copy and `.md` save actions. When extracted DOCX/PPTX images exist, also expose **Markdown + images ZIP** and optional **Base64-embedded Markdown** actions. The normal `.md` output keeps relative image paths and does not contain the image bytes.
+- **Markdown** — selectable source with copy and `.md` save actions. When extracted DOCX/PPTX images exist, also expose **Markdown + images ZIP** and optional **Base64-embedded Markdown** actions. Image-specific export controls remain hidden when the result contains no extracted images. The normal `.md` output keeps relative image paths and does not contain the image bytes.
 - **Preview** — safe local rendering of the generated Markdown subset.
 - **Information** — source filename, type, size, generated Markdown size, format-specific statistics, and concrete warnings.
 

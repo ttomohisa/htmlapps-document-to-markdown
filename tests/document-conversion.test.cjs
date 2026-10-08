@@ -127,3 +127,18 @@ test('body style based on Heading1 does not acquire a heading from numbering inh
   const styles = '<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/></w:style><w:style w:type="paragraph" w:styleId="Body"><w:basedOn w:val="Heading1"/><w:pPr><w:outlineLvl w:val="9"/></w:pPr></w:style>';
   assert.equal(paragraphInfo(app, styles, '<w:pStyle w:val="Body"/>').heading, 0);
 });
+test('image-only export panel is truly hidden for no-image results and after clear', async t => {
+  const { app, window, document } = launch(t); const panel = document.querySelector('#assetExportOptions');
+  assert.equal(window.getComputedStyle(panel).display, 'none', 'initial hidden panel must not be displayed');
+  await app.addFiles([new File(['No images'], 'plain.txt'), fixture('sample.docx')]); await until(() => !app.busy);
+  app.showSelectedItem(app.items[0]); assert.equal(panel.hidden, true); assert.equal(window.getComputedStyle(panel).display, 'none');
+  app.showSelectedItem(app.items[1]); assert.equal(panel.hidden, false); assert.notEqual(window.getComputedStyle(panel).display, 'none');
+  app.showSelectedItem(app.items[0]); assert.equal(window.getComputedStyle(panel).display, 'none');
+  app.resetSession(); assert.equal(panel.hidden, true); assert.equal(window.getComputedStyle(panel).display, 'none');
+});
+test('retrying a cancelled text file does not expose image-export actions', async t => {
+  const { app, window, document } = launch(t);
+  await app.addFiles([new File(['first'], 'first.txt'), new File(['retry'], 'retry.txt')]); const item = app.items[1]; app.cancelItem(item.id); await until(() => !app.busy);
+  document.querySelector(`[data-retry-item="${item.id}"]`).click(); await until(() => !app.busy); app.showSelectedItem(item);
+  assert.equal(window.getComputedStyle(document.querySelector('#assetExportOptions')).display, 'none');
+});

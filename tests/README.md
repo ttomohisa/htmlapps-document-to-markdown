@@ -57,3 +57,9 @@
 `fixtures/partial.pptx` is derived from the deterministic PPTX fixture with slide 2 deliberately removed from the package. The converter must keep slide 1, return a partial result, and identify **Slide 2** in the Partial failure section.
 
 `fixtures/partial.xlsx` is derived from the deterministic XLSX fixture with the visible `Dates & Formulas` worksheet deliberately removed. The converter must keep the readable worksheet, return a partial result, and identify **Sheet “Dates & Formulas”** in the Partial failure section.
+
+## Automated app regressions (v1.0.1)
+
+Run `npm ci --ignore-scripts` then `npm test` in this directory with Node.js 24. The repository check runs both commands too. The harness evaluates the actual inline app script in jsdom, with native Node File/Blob/decompression APIs; it does not execute imported document scripts or load external assets. Browser-native PDF, picker, download and layout behavior require the separate browser acceptance pass.
+
+`fixtures/style-lists.docx` is a synthetic Word document using the built-in ListBullet style. It reproduces the previously flattened style-inherited bullets. The suite also covers basedOn inheritance, direct overrides and numId zero, existing DOCX/PPTX/XLSX fixtures, text formats, invalid files, partial conversions, cancellation/retry, stale-work reset, byte-preserved images, exact Markdown saves, duplicate-name batch ZIPs, and localized headers.

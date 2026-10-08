@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented here.
 
+## [1.0.1] - 2026-10-08
+
+### Fixed
+
+- Hide image-specific export controls for results with no embedded images, including clear/retry transitions.
+- Preserve DOCX list numbering inherited through paragraph styles and `basedOn`; honor explicit numbering removal (`numId=0`) and guard malformed style cycles.
+- Keep compact EN / JA language actions, localized labels/tooltips, and the actual version visible in narrow headers.
+
+### Added
+
+- Retry failed or cancelled files in place without selecting them again or losing the chosen output filename.
+- Cloudflare PR previews and closed-PR cleanup using the current shared template workflow and existing repository credentials.
+- Conversion, queue/cancellation, export-content, and header regression tests.
+
+### Build
+
+- Adopt template `cb90877` root-output generation and hash parity checks, preventing `document-to-markdown.html` from drifting from the readable build.
+- Preserve the pinned PDF.js dependency, embedded assets, all eight input formats, and local-only runtime privacy.
+
 ## [1.0.0] - 2026-09-23
 
 ### Added

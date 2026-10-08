@@ -18,6 +18,8 @@ GitHub Pagesから最初のHTMLを読み込んだ後、ファイル解析・Mark
 
 ## 主な機能
 
+- **再選択せず再試行** — 失敗・キャンセルした行を、出力ファイル名と一覧の位置を保ったまま再変換できます。
+
 - **Office・PDF・テキストをMarkdownへ変換** — DOCX / PPTX / XLSX / PDF / TXT / HTML / CSV / TSVに対応します。
 - **文書構造をできるだけ保持** — 見出し、段落、リスト、表、リンク、PowerPointのSpeaker Notes、Excelのシート構造などを再利用しやすいMarkdownへ変換します。
 - **変換品質を確認できる** — 「変換済み / 確認推奨 / 変換対象外 / 一部失敗」を分けて表示し、スライド・シート・ページ位置も可能な範囲で示します。
@@ -146,3 +148,9 @@ DOCX / PPTX / XLSXのOOXML解析、CSV / TSV、HTML、ZIP出力はブラウザ�
 Copyright © 2026 ttomohisa
 
 このプロジェクトは [MIT License](LICENSE) で公開されています。
+
+## PRプレビューと回帰テスト
+
+同じリポジトリ内のPRでは、既存の `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` が設定済みの場合にCloudflare Workers Previewを作成し、URLをコメントします。PRを閉じると別ワークフローで削除します。シークレット未設定時はプレビューをスキップするため、ビルド成功だけではプレビュー作成済みとは限りません。
+
+Node.js 24とPowerShellを用意し、`scripts/check-powershell-syntax.ps1`、`scripts/check-repository.ps1` の順に実行します。チェックは `tests/` の固定バージョンの開発用依存を導入し、変換・キューの回帰テストと両HTMLのビルドを実行します。通常のビルドでは `document-to-markdown.html` も `dist/index.html` と完全一致するよう再生成します。直接編集しないでください。

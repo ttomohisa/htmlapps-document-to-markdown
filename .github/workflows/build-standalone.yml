@@ -7,6 +7,9 @@ on:
       - main
     paths:
       - "src/**"
+      - "tests/**"
+      - "wrangler.preview.jsonc"
+      - ".github/workflows/preview*.yml"
       - "scripts/**"
       - "app.config.json"
       - "dependencies.json"
@@ -30,6 +33,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
       - name: Validate PowerShell syntax and encoding
         shell: powershell
         run: .\scripts\check-powershell-syntax.ps1
@@ -43,6 +51,7 @@ jobs:
         with:
           name: standalone-html-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
+            *.html
             dist/index.html
             dist/index.self-extract.html
             dist/dependency-manifest.json

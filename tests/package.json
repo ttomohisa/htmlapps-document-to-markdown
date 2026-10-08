@@ -1,0 +1,7 @@
+{
+  "name": "document-to-markdown-tests",
+  "private": true,
+  "scripts": { "test": "node --test *.test.cjs" },
+  "engines": { "node": ">=24" },
+  "devDependencies": { "jsdom": "26.1.0" }
+}

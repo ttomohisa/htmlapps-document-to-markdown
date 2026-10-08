@@ -15,12 +15,13 @@ build-standalone.ps1         Dependency lock verification, embed, and build
 scripts/check-dependency-updates.ps1  Update discovery/reporting
 scripts/update-dependency.ps1          Reviewed upgrade helper
 scripts/verify-standalone.ps1 Static release checks
+document-to-markdown.html    Generated repository-root readable copy
 dist/index.html              Generated readable release artifact
 dist/index.self-extract.html Generated gzip self-extracting artifact
 dist/build-size-report.json    Generated size and embedded-asset storage report
 ```
 
-`dist/index.html` and `dist/index.self-extract.html` are generated and must not be edited manually.
+`dist/index.html`, `dist/index.self-extract.html`, and `document-to-markdown.html` are generated and must not be edited manually.
 
 
 ## Reusable component layer
@@ -110,3 +111,11 @@ Keep source in one HTML while it remains understandable. When an app grows subst
 - No runtime external resource.
 - Clear state ownership.
 - A build that fails on missing input.
+
+## Template refresh (v1.0.1)
+
+Build and PR-preview infrastructure follows `htmlapps-template` commit `cb90877`. A normal build derives the root filename from the repository name, copies the verified readable output, and checks exact SHA-256 parity. Explicit `-OutputPath` builds do not replace the root alias.
+
+Same-repository PRs targeting main build and verify the app before creating a Cloudflare Workers Preview. The separate closed-PR workflow removes that preview. Both use the existing `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets; these workflows do not create credentials or change account access. Missing secrets skip preview creation with a notice. Production GitHub Pages still serves `dist`.
+
+`tests/` has locked development-only jsdom dependencies. `scripts/check-repository.ps1` runs the app's actual inline JavaScript against synthetic Office fixtures and queue/export tests. Browser-native PDF, file-picker, download, and layout checks remain separate acceptance gates.

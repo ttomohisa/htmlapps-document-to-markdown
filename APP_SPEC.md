@@ -2,7 +2,7 @@
 
 ## Product
 
-**Document to Markdown v1.0.0**
+**Document to Markdown v1.0.1**
 
 Browser-only document-to-Markdown converter for Browser Kitty.
 
@@ -54,6 +54,7 @@ Generated Markdown uses a GitHub-Flavored-Markdown-compatible subset where pract
 
 - Treat DOCX as an OOXML ZIP package.
 - Parse `word/document.xml`, `word/styles.xml`, `word/numbering.xml`, and document relationships when present.
+- Resolve paragraph numbering from paragraph styles and their `basedOn` chain before applying direct paragraph overrides. Explicit `numId=0` removes numbering; malformed style cycles terminate safely.
 - Convert Heading 1–6 / Title-like paragraph styles, normal paragraphs, ordered and unordered lists, tables, hyperlinks, bold, italic, and strikethrough text.
 - Preserve external hyperlink targets as Markdown text without requesting them.
 - Resolve embedded images referenced by the main document through OOXML relationships, emit relative Markdown references such as `![alt](images/image-001.png)`, and preserve the original embedded image bytes for ZIP export.
@@ -220,6 +221,8 @@ The UI distinguishes both per-file and batch states:
 - failed
 - cancelled
 
+Failed and cancelled rows expose a localized Retry button. Retry keeps the same queue entry, source file, and output filename; it clears the previous error/result and requeues conversion. Processing rows cannot retry until cancellation has settled. Repeated clicks do not create duplicate work.
+
 A failed or cancelled file must not stop remaining queued files from being processed.
 
 A failed conversion must explain what happened and suggest a useful next action where possible.
@@ -270,6 +273,9 @@ Required properties:
 - edit `src/index.template.html`, never generated `dist` files by hand
 - exact Browser Kitty icon source at `assets/favicon.svg`
 - readable single HTML: `dist/index.html`
+- normal builds regenerate `document-to-markdown.html` as an exact byte copy; repository checks verify SHA-256 equality
+- same-repository PR previews and cleanup use the template Cloudflare Workers Preview workflow with existing repository credentials; absent credentials must be reported as a skipped preview, not a successful deployment
+- development-only Node.js 24 tests cover conversion fixtures, retry/cancel state, exports, and header contracts
 - gzip self-extracting single HTML: `dist/index.self-extract.html`
 - direct `file://` use
 - runtime network blocked

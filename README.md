@@ -18,6 +18,8 @@ GitHub Pages delivers the initial HTML. After it loads, document parsing, Markdo
 
 ## Features
 
+- **Retry without reselecting** — Retry a failed or cancelled row while keeping its filename and place in the queue.
+
 - **Convert common document formats to Markdown** — Supports DOCX, PPTX, XLSX, PDF, TXT, HTML, CSV, and TSV.
 - **Preserve useful document structure** — Extract headings, paragraphs, lists, tables, links, PowerPoint speaker notes, worksheet structure, and other reusable content.
 - **See what converted and what did not** — The quality report separates Converted, Check recommended, Not converted, and Partial failure items, with slide, sheet, or page locations where available.
@@ -146,3 +148,9 @@ Bug reports and feature proposals are welcome through GitHub Issues. See [CONTRI
 Copyright © 2026 ttomohisa
 
 Licensed under the [MIT License](LICENSE).
+
+## PR previews and regression checks
+
+Same-repository PRs build a Cloudflare Workers Preview and post its URL when the existing `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets are configured. A separate workflow removes the preview when the PR closes. Missing secrets skip preview creation; a green build alone does not prove a preview exists.
+
+Use Node.js 24 and PowerShell to run `scripts/check-powershell-syntax.ps1` followed by `scripts/check-repository.ps1`. The check installs the locked development-only dependencies under `tests/`, tests conversion and queue behavior, and builds both variants. Normal builds also regenerate the committed `document-to-markdown.html` as an exact copy of `dist/index.html`; never edit it directly.

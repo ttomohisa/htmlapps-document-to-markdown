@@ -2,7 +2,7 @@
 
 ## Product
 
-**Document to Markdown v1.0.1**
+**Document to Markdown v1.0.2**
 
 Browser-only document-to-Markdown converter for Browser Kitty.
 

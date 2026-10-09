@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.2
+
+- Declare the embedded PDF.js worker-named module as `executionContext: "main-thread"`, matching the existing in-thread `WorkerMessageHandler` initialization.
+- Document and test the per-asset context without changing PDF processing, runtime dependencies, or Worker requirements.
+- Rebuild the standalone artifacts with the patch version.
+
 All notable changes to this project are documented here.
 
 ## [1.0.1] - 2026-10-08

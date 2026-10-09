@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.3] - 2026-10-09
+
+### Fixed
+- Normalize the canonical app icon to `#16624f` with exact 25% background corner radii, preserving existing artwork and padding.
+- Keep the app header, favicon, and generated standalone variants synchronized.
+
 ## v1.0.2
 
 - Declare the embedded PDF.js worker-named module as `executionContext: "main-thread"`, matching the existing in-thread `WorkerMessageHandler` initialization.

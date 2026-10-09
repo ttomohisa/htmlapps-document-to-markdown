@@ -2,7 +2,7 @@
 
 ## Product
 
-**Document to Markdown v1.0.2**
+**Document to Markdown v1.0.3**
 
 Browser-only document-to-Markdown converter for Browser Kitty.
 
@@ -328,3 +328,9 @@ Future work should be prioritized from real usage and issues rather than added a
 - Optional Markdown formatting / Front Matter presets
 
 Legacy `.doc` / `.ppt`, AI summarization, external AI APIs, remote URL conversion, and cloud storage remain outside the v1.0.0 scope unless the specification is changed later.
+
+## v1.0.3 icon consistency
+
+- The canonical icon background and matching green details use `#16624f`.
+- Background corner radii are exactly 25% of their corresponding width and height; existing bounds, padding, and foreground artwork are preserved.
+- Header, favicon, and self-extract loader inherit the canonical `assets/favicon.svg`.

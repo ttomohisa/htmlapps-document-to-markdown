@@ -72,7 +72,7 @@ test('header uses compact destination language, localized help and actual patch 
   for (const lang of ['en', 'ja']) {
     const { document } = launch(t, lang); const button = document.querySelector('#languageButton');
     assert.equal(button.textContent, lang === 'ja' ? 'EN' : 'JA'); assert.equal(button.title, button.getAttribute('aria-label'));
-    assert.equal(document.querySelector('#versionBadge').textContent, 'v1.0.2');
+    assert.equal(document.querySelector('#versionBadge').textContent, 'v1.0.3');
     assert.equal(document.querySelector('#helpButton').title, document.querySelector('#helpButton').getAttribute('aria-label'));
     if (lang === 'ja') assert.equal(document.querySelector('[data-i18n="localBadge"]').textContent, '完全ローカル処理');
   }

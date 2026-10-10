@@ -3,7 +3,7 @@
   "name": "Document to Markdown",
   "nameJa": "文書→Markdown",
   "slug": "document-to-markdown",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Convert local DOCX, PPTX, XLSX, PDF, TXT, HTML, CSV, and TSV files to Markdown entirely in your browser.",
   "descriptionJa": "DOCX・PPTX・XLSX・PDF・TXT・HTML・CSV・TSV文書を、ブラウザー内だけでMarkdownへ変換します。",
   "defaultLanguage": "auto",

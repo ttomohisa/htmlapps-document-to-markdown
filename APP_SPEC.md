@@ -42,7 +42,7 @@ Core flow:
 5. Select a completed row to review its Markdown, preview, and document information.
 6. Copy or save an individual `.md`; for DOCX / PPTX results with extracted images, either save a ZIP containing the Markdown and `images/` assets or optionally save a self-contained Markdown file with image bytes embedded as Base64 data URIs.
 7. Save all successful results as one batch ZIP when needed.
-8. Remove individual queue entries or clear the full in-memory session when finished.
+8. Remove individual queue entries or clear the full in-memory session when finished. Confirmed Clear all returns keyboard focus to Choose file unless another dialog owns focus; cancellation returns to the existing Clear all action.
 
 DOCX, PPTX, and XLSX OOXML packages are read with browser-native `DecompressionStream` and `DOMParser`. v1.0.0 uses one pinned runtime dependency, PDF.js / `pdfjs-dist` 6.2.108, embedded into the standalone HTML together with the selected Japanese CMaps required by the existing Browser Kitty PDF implementation. No dependency is fetched at runtime.
 

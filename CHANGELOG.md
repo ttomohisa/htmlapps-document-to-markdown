@@ -2,6 +2,7 @@
 
 ## 1.0.4 - 2026-10-10
 - Prevent background scrolling while native modal dialogs are open.
+- Return keyboard focus to Choose file after confirmed Clear all, without taking focus from a newer dialog.
 - Preserve the existing local-processing shield and add responsive regression coverage.
 
 ## [1.0.3] - 2026-10-09

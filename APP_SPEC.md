@@ -2,7 +2,7 @@
 
 ## Product
 
-**Document to Markdown v1.0.3**
+**Document to Markdown v1.0.4**
 
 Browser-only document-to-Markdown converter for Browser Kitty.
 
@@ -334,3 +334,6 @@ Legacy `.doc` / `.ppt`, AI summarization, external AI APIs, remote URL conversio
 - The canonical icon background and matching green details use `#16624f`.
 - Background corner radii are exactly 25% of their corresponding width and height; existing bounds, padding, and foreground artwork are preserved.
 - Header, favicon, and self-extract loader inherit the canonical `assets/favicon.svg`.
+
+## Responsive dialog audit
+- Native modal dialogs lock background scrolling for their open lifetime; closing restores ordinary page scrolling.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4 - 2026-10-10
+- Prevent background scrolling while native modal dialogs are open.
+- Preserve the existing local-processing shield and add responsive regression coverage.
+
 ## [1.0.3] - 2026-10-09
 
 ### Fixed

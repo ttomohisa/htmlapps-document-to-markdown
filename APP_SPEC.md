@@ -337,3 +337,8 @@ Legacy `.doc` / `.ppt`, AI summarization, external AI APIs, remote URL conversio
 
 ## Responsive dialog audit
 - Native modal dialogs lock background scrolling for their open lifetime; closing restores ordinary page scrolling.
+
+## Shared mobile footer and Help metadata
+
+- Hide only the informational page footer at the existing 600px mobile-workflow breakpoint; preserve functional actions and navigation.
+- Keep the entire existing build-information block, IDs, population and privacy text intact as the final Help scroll-body item, available on desktop and mobile.

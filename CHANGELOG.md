@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Hide only the informational mobile footer and move the existing build-information block intact to the end of Help.
+
 ## 1.0.4 - 2026-10-10
 - Prevent background scrolling while native modal dialogs are open.
 - Return keyboard focus to Choose file after confirmed Clear all, without taking focus from a newer dialog.

@@ -16,7 +16,7 @@ Please report security issues privately to the repository owner rather than publ
 
 ## Office Open XML safety
 
-DOCX, PPTX, and XLSX files are treated as untrusted ZIP/XML input. The app does not execute macros, spreadsheet formulas, media, animations, or embedded objects. v1.0.0 rejects encrypted packages, limits central-directory entry counts and declared expanded sizes, and only accepts STORE / DEFLATE ZIP entries required by normal OOXML documents. External hyperlinks and externally linked images may be retained as Markdown references but are never requested automatically. Embedded DOCX/PPTX image bytes are read only from the selected OOXML package and written only to a user-initiated local ZIP download.
+DOCX, PPTX, and XLSX files are treated as untrusted ZIP/XML input. The app does not execute macros, spreadsheet formulas, media, animations, or embedded objects. v1.1.0 rejects encrypted packages, limits central-directory entry counts, declared and actual expanded sizes, validates entry CRC-32 and directory/local header consistency, and only accepts STORE / DEFLATE ZIP entries required by normal OOXML documents. External hyperlinks and externally linked images may be retained as Markdown references but are never requested automatically. Embedded DOCX/PPTX image bytes are read only from the selected OOXML package and used in local Blob previews and user-initiated exports.
 
 
 ## PDF safety
@@ -25,8 +25,10 @@ PDF input is treated as untrusted binary data and parsed with the pinned, embedd
 
 ## Conversion diagnostics
 
-The v1.0.0 quality report is derived only from local parser observations. It does not send document content to a server and does not claim a probabilistic accuracy score.
+The v1.1.0 quality report is derived only from local parser observations. It does not send document content to a server and does not claim a probabilistic accuracy score.
 
 ## Base64 image export
 
 The optional Base64-embedded Markdown export uses only image bytes already extracted locally from the selected DOCX/PPTX package. It performs no fetch, upload, remote image resolution, or automatic persistence.
+
+ZIP exports reject duplicate and unsafe paths and cap output at 512 MiB; Base64 output has an expansion cap accounting for repeated references. Preview raster assets use local Blob URLs, and manual edits remain session-only. External links can initiate navigation only through user action; the app does not automatically fetch them.

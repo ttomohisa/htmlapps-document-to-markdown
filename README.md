@@ -14,7 +14,7 @@ A single-HTML app that converts DOCX, PPTX, XLSX, PDF, TXT, HTML, CSV, and TSV c
 
 GitHub Pages delivers the initial HTML. After it loads, document parsing, Markdown generation, preview, and export are processed on your device. The selected documents and generated results are not uploaded by the app.
 
-[![Document to Markdown screenshot](assets/screenshot-en.png)](https://ttomohisa.github.io/htmlapps-document-to-markdown/)
+Open the demo above to see the current interface.
 
 ## Features
 
@@ -36,8 +36,8 @@ Just [open the demo](https://ttomohisa.github.io/htmlapps-document-to-markdown/)
 
 ### Use a downloaded file
 
-1. Get `dist/index.html` from a build artifact or a built copy of this repository.
-2. Open it in a current Chromium-based browser, Firefox, or Safari.
+1. Get `index.html` (readable) or `index.self-extract.html` (compressed) from [GitHub Releases](https://github.com/ttomohisa/htmlapps-document-to-markdown/releases) or a build artifact.
+2. Open it in current Chrome or Edge. Firefox and Safari are best-effort targets, not verified for this release.
 3. Document conversion runs locally in the browser.
 
 ### Build it locally (advanced)
@@ -56,6 +56,12 @@ The template build validates pinned dependencies, single-file output, CSP, runti
 3. Select a completed result and review **Markdown / Preview / Document information**.
 4. Change the output filename if needed, then copy or save the result.
 5. Use **Save all as ZIP** when you want to package all successful batch results together.
+
+### Editable workspace and conversion settings
+
+The desktop workspace shows the file queue and selected result, with Markdown, Preview, Split and Info views. On mobile, the bottom navigation remains available and Copy/Save are above the editor. Edit Markdown locally, undo/redo recent changes, restore the conversion result, search/replace literal text, and navigate via the outline. Edits are kept separately for each file during the session and are not persisted. Source statistics describe the conversion, not manual edits.
+
+Conversion settings apply to the next files before loading, or to a selected file when you choose Convert again. PDF pages, PowerPoint slides and visible Excel sheets can be selected by original number (for example `1, 3-5`). Non-text files ignore text encoding; formats without numbered units ignore ranges. Explicit text encodings include UTF-8, Shift_JIS, UTF-16LE/BE, EUC-JP and Windows-1252. Options control headings, inline formatting, links, Markdown tables (otherwise TSV code blocks), image references and speaker notes. Default settings preserve previous output. Range saving uses the converted source units; to export edited text, select the text or save the full Markdown. Combined output includes edits and can use source filenames, separators and embedded images; without embedding, images are included in a ZIP with unique paths.
 
 ### Save options
 
@@ -122,7 +128,7 @@ The GitHub Pages version requires the initial HTML request. For use with the net
 
 ## Limitations
 
-- PDF conversion uses the extractable text layer. OCR for scanned or image-only PDFs is not included in v1.0.0.
+- PDF conversion uses the extractable text layer. OCR for scanned or image-only PDFs is not supported.
 - PDF headings, paragraphs, and reading order are inferred from layout, so complex columns, tables, vertical text, or rotated text may need review.
 - Encrypted or password-protected DOCX / PPTX / XLSX files are not supported.
 - PPTX charts, SmartArt, video/audio, animations, and some embedded objects are not reconstructed as Markdown.
@@ -161,8 +167,6 @@ Text input recognizes UTF-8, BOM-marked UTF-16 and falls back to Shift_JIS when 
 
 Local previews show supported embedded raster images (up to 100 unique images and 32 MiB of source image bytes); other images remain placeholders. Releases are created from verified main-branch builds when the version changes.
 
-### Editable workspace and conversion settings
+### Export and reconversion limits
 
-The desktop workspace shows the file queue and selected result, with Markdown, Preview, Split and Info views. On mobile, the bottom navigation remains available and Copy/Save are above the editor. Edit Markdown locally, undo/redo recent changes, restore the conversion result, search/replace literal text, and navigate via the outline. Edits are kept separately for each file during the session and are not persisted. Source statistics describe the conversion, not manual edits.
-
-Conversion settings apply to the next files before loading, or to a selected file when you choose Convert again. PDF pages, PowerPoint slides and visible Excel sheets can be selected by original number (for example `1, 3-5`). Non-text files ignore text encoding; formats without numbered units ignore ranges. Explicit text encodings include UTF-8, Shift_JIS, UTF-16LE/BE, EUC-JP and Windows-1252. Options control headings, inline formatting, links, Markdown tables (otherwise TSV code blocks), image references and speaker notes. Default settings preserve previous output. Range saving uses the converted source units; to export edited text, select the text or save the full Markdown. Combined output includes edits and can use source filenames, separators and embedded images; without embedding, images are included in a ZIP with unique paths.
+Failed or cancelled reconversion preserves the previous result and edit history. ZIP exports are capped at 512 MiB and embedded Markdown at an estimated 64 million UTF-16 code units. Markdown rendering varies across readers. Opening an external link manually initiates a browser request.

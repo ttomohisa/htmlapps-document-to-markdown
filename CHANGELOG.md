@@ -1,6 +1,8 @@
 # Changelog
 
-## 1.1.0 - 2026-11-24
+## 1.1.0 - 2026-11-25
+
+- Preserve prior edited results when reconversion fails or is cancelled; validate ZIP integrity and cap archive/Base64 output; reject malformed quoted CSV, improve copy fallback and clarify Help and documentation.
 
 - Refine action hierarchy with compact SVG edit tools, quieter secondary buttons, aligned header/footer content widths and a document-style Markdown navigation icon.
 

@@ -1,6 +1,6 @@
 # Offline / Local Processing Verification
 
-Document to Markdown v1.0.0 is intended to run with no runtime external network access.
+Document to Markdown v1.1.0 is intended to run with no runtime external network access.
 
 ## Release verification
 
@@ -39,7 +39,7 @@ Open the committed DOCX fixture and confirm headings, paragraphs, lists, tables,
 
 ## PPTX check
 
-Open the committed PPTX fixture and confirm slide order, titles, inherited bullet levels, tables, external hyperlinks, Speaker Notes, embedded image extraction, and chart warnings convert without a network request. Confirm PPTX source-boundary comments do not appear in the rendered preview. Save the image ZIP and confirm it contains the generated Markdown plus `images/image-001.png`.
+Open the committed PPTX fixture and confirm slide order, titles, inherited bullet levels, tables, external hyperlinks, Speaker Notes, embedded image extraction, and chart warnings convert without a network request. Confirm PPTX source-boundary comments appear as localized slide labels rather than raw comments. Save the image ZIP and confirm it contains the generated Markdown plus `images/image-001.png`.
 
 ## XLSX check
 
@@ -48,7 +48,7 @@ Open the committed XLSX fixture and confirm visible worksheets are emitted in wo
 
 ## PDF check
 
-Open `tests/fixtures/sample.pdf` with the Network panel offline. Confirm all three pages convert in page order, `<!-- Page N -->` markers are present in the Markdown source but hidden from preview, English and Japanese text are extracted, link annotations do not cause a request, and PDF layout warnings are shown where detected. Confirm the embedded dependency count is `1` and there is no request for the PDF.js module, worker, CMap files, CDN content, or linked URL.
+Open `tests/fixtures/sample.pdf` with the Network panel offline. Confirm all three pages convert in page order, `<!-- Page N -->` markers are present in Markdown source and rendered as localized page labels in preview, English and Japanese text are extracted, link annotations do not cause a request, and PDF layout warnings are shown where detected. Confirm the embedded dependency count is `1` and there is no request for the PDF.js module, worker, CMap files, CDN content, or linked URL.
 
 Open `tests/fixtures/scanned.pdf` and confirm the conversion fails with the explicit scan/image-only PDF message explaining that OCR is not yet supported. The file must not be uploaded or sent to an OCR service.
 
@@ -58,3 +58,7 @@ Open `tests/fixtures/scanned.pdf` and confirm the conversion fails with the expl
 2. Open the Info tab and confirm findings are grouped by Converted / Check recommended / Not converted / Partial failure.
 3. Confirm slide, sheet, or page locations appear where the fixture exposes a location-specific issue.
 4. Confirm no network request is made while opening the report.
+
+## v1.1.0 workspace and export checks
+
+Run `scripts/mobile-help.browser.cjs` with the generated variants and Playwright Chromium. Verify desktop views, mobile editing/undo/redo/save, explicit range conversion, partial and combined downloads, and no HTTP(S) requests. Unit tests also cover encoding override, source range validation, corrupted ZIPs and export limits. Check failed/cancelled reconversion restores prior text. Firefox/Safari and physical mobile devices require separate manual verification; do not infer support from Chromium alone.

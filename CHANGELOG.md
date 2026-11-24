@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Fix batch ZIP folder collisions, blank/date/time Excel values, sparse worksheet allocation, and large CSV conversion.
+- Detect BOM-marked UTF-16 and Shift_JIS fallback; report omitted Word content and PDF pages without text.
+- Bound ZIP decompression, table expansion and preview output; protect queue limits on Undo and prevent stale queue UI updates.
+- Preserve explicit blank CSV rows and preformatted HTML line breaks; reject empty HTML; hide the mobile local-processing badge.
+
 - Hide only the informational mobile footer and move the existing build-information block intact to the end of Help.
 
 ## 1.0.4 - 2026-10-10

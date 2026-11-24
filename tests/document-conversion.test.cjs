@@ -142,3 +142,48 @@ test('retrying a cancelled text file does not expose image-export actions', asyn
   document.querySelector(`[data-retry-item="${item.id}"]`).click(); await until(() => !app.busy); app.showSelectedItem(item);
   assert.equal(window.getComputedStyle(document.querySelector('#assetExportOptions')).display, 'none');
 });
+
+test('Excel date, time, elapsed duration and styled blank cells are distinct', t => {
+  const {app}=launch(t); const styles=fmt=>({xfs:[fmt],custom:new Map()});
+  assert.equal(app.xlsxSerialDate(0.5,false,0,styles(20)),'12:00:00');
+  assert.equal(app.xlsxSerialDate(1.5,false,0,styles(46)),'36:00:00');
+  assert.equal(app.xlsxSerialDate('',false,0,styles(14)),null);
+  assert.equal(app.xlsxSerialDate(60,false,0,styles(14)),'1900-02-29');
+  const c=app.parseXml('<c s="0"/>').documentElement;
+  assert.equal(app.xlsxCellValue(c,[],styles(14),false,[],{formulas:0}),'');
+});
+test('sparse Excel ranges are rejected before allocating a rectangular table',t=>{
+  const {app}=launch(t), styles={xfs:[],custom:new Map()};
+  const sheet=app.parseXml('<worksheet><sheetData><row r="1"><c r="A1"><v>1</v></c></row><row r="1048576"><c r="XFD1048576"><v>2</v></c></row></sheetData></worksheet>');
+  assert.throws(()=>app.renderXlsxWorksheet(sheet,[],styles,false,[],{formulas:0}),/XLSX_RANGE/);
+});
+test('Shift_JIS and BOM UTF-16 files decode locally and report source encoding',async t=>{
+  const {app}=launch(t);
+  const sj=await app.convertFile(new File([Uint8Array.from([0x93,0xfa,0x96,0x7b])],'jp.txt'));
+  assert.equal(sj.markdown.trim(),'日本');assert.equal(sj.encoding,'Shift_JIS');
+  const utf=await app.convertFile(new File([Uint8Array.from([255,254,65,0])],'utf.txt'));
+  assert.equal(utf.markdown.trim(),'A');assert.equal(utf.encoding,'UTF-16LE');
+});
+test('large CSV does not spread all rows as function arguments',async t=>{
+  const {app}=launch(t);const r=await app.convertFile(new File(['name\n'+'a\n'.repeat(200000)],'large.csv'));
+  assert.equal(r.stats.rows,200001);
+});
+test('HTML without convertible content fails explicitly and preformatted lines survive',async t=>{
+  const {app}=launch(t);
+  await assert.rejects(app.convertFile(new File(['<script>void 0</script>'],'empty.html')),/EMPTY/);
+  const r=await app.convertFile(new File(['<pre>A\n\n\nB</pre>'],'pre.html'));
+  assert.match(r.markdown,/A\n\n\nB/);
+});
+test('batch ZIP folder allocation avoids collision with existing numeric suffix',async t=>{
+  const {app,window}=launch(t);let saved;
+  window.URL.createObjectURL=blob=>{saved=blob;return 'blob:test'};window.URL.revokeObjectURL=()=>{};window.HTMLAnchorElement.prototype.click=function(){};
+  await app.addFiles([new File(['A'],'same.txt'),new File(['B'],'same.txt'),new File(['C'],'same-2.txt')]);await until(()=>!app.busy);
+  app.downloadAllResults();const zip=await app.openZip(await saved.arrayBuffer());
+  assert.equal((await zip.read('same/same.md')).trim(),'A');
+  assert.equal((await zip.read('same-2/same.md')).trim(),'B');
+  assert.equal((await zip.read('same-2-2/same-2.md')).trim(),'C');
+});
+test('CSV retains explicit final empty row',async t=>{
+  const {app}=launch(t);const r=await app.convertFile(new File(['a,b\nx,y\n,\n'],'empty-row.csv'));
+  assert.equal(r.stats.rows,3);assert.match(r.markdown,/\|  \|  \|/);
+});

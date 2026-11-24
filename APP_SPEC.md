@@ -120,7 +120,7 @@ Generated Markdown uses a GitHub-Flavored-Markdown-compatible subset where pract
 
 ### TXT
 
-- Decode as UTF-8 through browser File APIs.
+- Decode UTF-8, BOM-marked UTF-16LE/BE, or Shift_JIS fallback after invalid UTF-8; report source encoding and request review for non-UTF-8.
 - Normalize CRLF/CR line endings to LF.
 - Preserve text rather than inventing headings or lists.
 
@@ -342,3 +342,10 @@ Legacy `.doc` / `.ppt`, AI summarization, external AI APIs, remote URL conversio
 
 - Hide only the informational page footer at the existing 600px mobile-workflow breakpoint; preserve functional actions and navigation.
 - Keep the entire existing build-information block, IDs, population and privacy text intact as the final Help scroll-body item, available on desktop and mobile.
+
+## Conversion reliability (unreleased)
+
+- Cap expanded tables at 2,000,000 cells and Markdown at 32,000,000 UTF-16 code units; cap preview only at 2,000 lines / 200,000 code units.
+- Enforce ZIP entry expansion limits on actual streamed bytes before collecting complete output.
+- Preserve blank dates, time-only formats and elapsed durations; report oversized sheet ranges and non-extracted Word parts or PDF pages.
+- Allocate unique ZIP folder names across all results, including generated suffixes. Recheck input limits when undoing removal.

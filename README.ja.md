@@ -154,3 +154,7 @@ Copyright © 2026 ttomohisa
 同じリポジトリ内のPRでは、既存の `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` が設定済みの場合にCloudflare Workers Previewを作成し、URLをコメントします。PRを閉じると別ワークフローで削除します。シークレット未設定時はプレビューをスキップするため、ビルド成功だけではプレビュー作成済みとは限りません。
 
 Node.js 24とPowerShellを用意し、`scripts/check-powershell-syntax.ps1`、`scripts/check-repository.ps1` の順に実行します。チェックは `tests/` の固定バージョンの開発用依存を導入し、変換・キューの回帰テストと両HTMLのビルドを実行します。通常のビルドでは `document-to-markdown.html` も `dist/index.html` と完全一致するよう再生成します。直接編集しないでください。
+
+### 変換時の安全対策（次回更新）
+
+テキスト系ファイルはUTF-8、BOM付きUTF-16に対応し、UTF-8として不正な場合はShift_JISで読み込みます。文書情報で文字コードと変換結果を確認してください。展開後200万セルを超える表は端末のメモリを保護するため変換を中止します。長いプレビューは表示のみ省略し、保存するMarkdownは省略しません。Wordの未対応部分や文字を抽出できないPDFページは文書情報に表示します。処理中のキャンセルは対応する処理の区切りで反映されます。

@@ -154,3 +154,7 @@ Licensed under the [MIT License](LICENSE).
 Same-repository PRs build a Cloudflare Workers Preview and post its URL when the existing `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets are configured. A separate workflow removes the preview when the PR closes. Missing secrets skip preview creation; a green build alone does not prove a preview exists.
 
 Use Node.js 24 and PowerShell to run `scripts/check-powershell-syntax.ps1` followed by `scripts/check-repository.ps1`. The check installs the locked development-only dependencies under `tests/`, tests conversion and queue behavior, and builds both variants. Normal builds also regenerate the committed `document-to-markdown.html` as an exact copy of `dist/index.html`; never edit it directly.
+
+### Conversion safety (unreleased)
+
+Text input recognizes UTF-8, BOM-marked UTF-16 and falls back to Shift_JIS when UTF-8 is invalid; verify the detected encoding in Document information. Tables exceeding two million expanded cells are rejected to protect device memory. Very long previews are shortened without shortening the saved Markdown. Unsupported Word parts and PDF pages without extractable text are reported. The current processing cancellation remains checkpoint-based.

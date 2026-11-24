@@ -187,3 +187,19 @@ test('CSV retains explicit final empty row',async t=>{
   const {app}=launch(t);const r=await app.convertFile(new File(['a,b\nx,y\n,\n'],'empty-row.csv'));
   assert.equal(r.stats.rows,3);assert.match(r.markdown,/\|  \|  \|/);
 });
+
+test('HTML whitespace follows HTML semantics and explicit line breaks survive',async t=>{
+ const {app}=launch(t);const r=await app.convertFile(new File(['<p>A\n B<br>C</p>'],'line.html'));
+ assert.match(r.markdown,/A B  \nC/);assert.match(app.markdownToSafeHtml(r.markdown),/A B<br>C/);
+});
+test('safe preview does not rewrite emphasis in generated link attributes',t=>{
+ const {app}=launch(t);assert.match(app.markdownToSafeHtml('[Link](https://example.com/a*b*c)'),/href="https:\/\/example\.com\/a\*b\*c"/);
+ assert.doesNotMatch(app.markdownToSafeHtml('[Link](java\t script:bad)'),/<a /);
+ assert.doesNotMatch(app.markdownToSafeHtml('[Link](javascript:bad)'),/<a /);
+});
+test('CSV conversion cancellation is observed at a cooperative checkpoint',async t=>{
+ const {app}=launch(t);const control={cancelRequested:false};
+ const result=app.convertFile(new File(['a\n'+'b\n'.repeat(200000)],'large.csv'),control);
+ setTimeout(()=>{control.cancelRequested=true},0);
+ await assert.rejects(result,/CANCELLED/);
+});

@@ -157,4 +157,4 @@ Use Node.js 24 and PowerShell to run `scripts/check-powershell-syntax.ps1` follo
 
 ### Conversion safety (unreleased)
 
-Text input recognizes UTF-8, BOM-marked UTF-16 and falls back to Shift_JIS when UTF-8 is invalid; verify the detected encoding in Document information. Tables exceeding two million expanded cells are rejected to protect device memory. Very long previews are shortened without shortening the saved Markdown. Unsupported Word parts and PDF pages without extractable text are reported. The current processing cancellation remains checkpoint-based.
+Text input recognizes UTF-8, BOM-marked UTF-16 and falls back to Shift_JIS when UTF-8 is invalid; verify the detected encoding in Document information. Tables exceeding two million expanded cells are rejected to protect device memory. Very long previews are shortened without shortening the saved Markdown. Unsupported Word parts and PDF pages without extractable text are reported. CSV/TSV checks cancellation during parsing and row conversion; PPTX and XLSX check between slides and sheets. DOCX and HTML remain checkpoint-based around conversion.

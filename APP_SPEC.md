@@ -349,3 +349,5 @@ Legacy `.doc` / `.ppt`, AI summarization, external AI APIs, remote URL conversio
 - Enforce ZIP entry expansion limits on actual streamed bytes before collecting complete output.
 - Preserve blank dates, time-only formats and elapsed durations; report oversized sheet ranges and non-extracted Word parts or PDF pages.
 - Allocate unique ZIP folder names across all results, including generated suffixes. Recheck input limits when undoing removal.
+
+- CSV/TSV yield and check cancellation while parsing and formatting; PPTX/XLSX check between units. Keep the local-processing badge on desktop only.

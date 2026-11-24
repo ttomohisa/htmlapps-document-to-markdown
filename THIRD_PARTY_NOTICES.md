@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-Document to Markdown v1.0.0 embeds the following runtime library and selected package assets at build time.
+Document to Markdown v1.1.0 embeds the following runtime library and selected package assets at build time.
 
 ## PDF.js / pdfjs-dist 6.2.108
 

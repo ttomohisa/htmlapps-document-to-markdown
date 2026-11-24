@@ -1,0 +1,90 @@
+name: Release standalone HTML
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: standalone-release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Validate PowerShell syntax and encoding
+        shell: powershell
+        run: .\scripts\check-powershell-syntax.ps1
+      - name: Build and verify
+        shell: pwsh
+        run: ./scripts/check-repository.ps1
+      - name: Verify mobile Help in Chromium
+        shell: pwsh
+        run: |
+          $testTools = Join-Path $env:RUNNER_TEMP "mobile-help-tests"
+          npm install --prefix $testTools --ignore-scripts --no-audit --no-fund --package-lock=false playwright@1.58.2
+          if ($LASTEXITCODE -ne 0) { throw "Playwright installation failed." }
+          $env:NODE_PATH = Join-Path $testTools "node_modules"
+          & (Join-Path $testTools "node_modules/.bin/playwright.cmd") install chromium
+          if ($LASTEXITCODE -ne 0) { throw "Chromium installation failed." }
+          New-Item -ItemType Directory -Force -Path test-results/mobile-help | Out-Null
+          node scripts/mobile-help.browser.cjs 2>&1 | Tee-Object -FilePath test-results/mobile-help/results.log
+          if ($LASTEXITCODE -ne 0) { throw "Mobile Help browser regression failed." }
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-html
+          path: |
+            dist/index.html
+            dist/index.self-extract.html
+          if-no-files-found: error
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-html
+          path: release-html
+      - name: Create versioned release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(jq -er '.version' app.config.json)
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          tag="v$version"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists; leaving it unchanged."
+            exit 0
+          fi
+          if git rev-parse --verify "refs/tags/$tag^{commit}" >/dev/null 2>&1; then
+            test "$(git rev-parse "refs/tags/$tag^{commit}")" = "$GITHUB_SHA"
+          fi
+          python3 - "$version" <<'PY'
+          import re, sys
+          from pathlib import Path
+          version=sys.argv[1]
+          text=Path('CHANGELOG.md').read_text(encoding='utf-8-sig')
+          match=re.search(r'^## (?:v)?'+re.escape(version)+r'(?:\s|$)[^\n]*\n(.*?)(?=^## |\Z)',text,re.M|re.S)
+          if not match or not match.group(1).strip():
+              raise SystemExit('Missing versioned release notes')
+          Path('release-notes.txt').write_text(match.group(1).strip()+'\n',encoding='utf-8')
+          PY
+          gh release create "$tag" release-html/index.html release-html/index.self-extract.html --target "$GITHUB_SHA" --title "$tag" --notes-file release-notes.txt

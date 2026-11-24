@@ -2,7 +2,7 @@
 
 ## Product
 
-**Document to Markdown v1.0.4**
+**Document to Markdown v1.1.0**
 
 Browser-only document-to-Markdown converter for Browser Kitty.
 
@@ -20,7 +20,7 @@ Document to Markdown extracts useful document structure into Markdown while keep
 
 The product prioritizes semantic structure over visual fidelity. It does not promise pixel-perfect reconstruction of the source document.
 
-## 2. Current release scope — v1.0.0
+## 2. Current release scope — v1.1.0
 
 Supported input formats:
 
@@ -28,7 +28,7 @@ Supported input formats:
 - Microsoft PowerPoint Open XML: `.pptx`
 - Microsoft Excel Open XML: `.xlsx`
 - PDF with an extractable text layer: `.pdf`
-- UTF-8 plain text: `.txt`
+- Plain text: `.txt`
 - HTML: `.html`, `.htm`
 - CSV: `.csv`
 - TSV: `.tsv`
@@ -120,7 +120,7 @@ Generated Markdown uses a GitHub-Flavored-Markdown-compatible subset where pract
 
 ### TXT
 
-- Decode as UTF-8 through browser File APIs.
+- Decode UTF-8, BOM-marked UTF-16LE/BE, or Shift_JIS fallback after invalid UTF-8; report source encoding and request review for non-UTF-8.
 - Normalize CRLF/CR line endings to LF.
 - Preserve text rather than inventing headings or lists.
 
@@ -144,7 +144,7 @@ Generated Markdown uses a GitHub-Flavored-Markdown-compatible subset where pract
 
 Each successful conversion exposes three result views:
 
-- **Markdown** — selectable source with copy and `.md` save actions. When extracted DOCX/PPTX images exist, also expose **Markdown + images ZIP** and optional **Base64-embedded Markdown** actions. Image-specific export controls remain hidden when the result contains no extracted images. The normal `.md` output keeps relative image paths and does not contain the image bytes.
+- **Markdown** — editable source with copy and `.md` save actions. When extracted DOCX/PPTX images exist, also expose **Markdown + images ZIP** and optional **Base64-embedded Markdown** actions. Image-specific export controls remain hidden when the result contains no extracted images. The normal `.md` output keeps relative image paths and does not contain the image bytes.
 - **Preview** — safe local rendering of the generated Markdown subset.
 - **Information** — source filename, type, size, generated Markdown size, format-specific statistics, and concrete warnings.
 
@@ -342,3 +342,42 @@ Legacy `.doc` / `.ppt`, AI summarization, external AI APIs, remote URL conversio
 
 - Hide only the informational page footer at the existing 600px mobile-workflow breakpoint; preserve functional actions and navigation.
 - Keep the entire existing build-information block, IDs, population and privacy text intact as the final Help scroll-body item, available on desktop and mobile.
+
+## Conversion reliability (v1.1.0)
+
+- Cap expanded tables at 2,000,000 cells and Markdown at 32,000,000 UTF-16 code units; cap preview only at 2,000 lines / 200,000 code units.
+- Enforce ZIP entry expansion limits on actual streamed bytes before collecting complete output.
+- Preserve blank dates, time-only formats and elapsed durations; report oversized sheet ranges and non-extracted Word parts or PDF pages.
+- Allocate unique ZIP folder names across all results, including generated suffixes. Recheck input limits when undoing removal.
+
+- CSV/TSV yield and check cancellation while parsing and formatting; PPTX/XLSX check between units. Keep the local-processing badge on desktop only.
+
+## v1.1.0 follow-up
+
+- Preview supported raster Office assets via revoked local Blob URLs (100 unique assets / 32 MiB source bytes); remote and unsupported images remain placeholders.
+- Preview nested list hierarchy and ordered start values. Word and HTML yield between structural blocks; parsing and individual heavy blocks are still synchronous.
+- Report hidden slides, merged presentation cells, spreadsheet hyperlink targets and non-reproduced numeric formats.
+- Release only from verified main builds, with versioned tags and both standalone HTML variants.
+
+### Compact workspace (v1.1.0)
+
+- No separate hero heading. Show the introduction and initial file-limit text only while the file queue is empty; restore them when the final item is removed or the session is cleared. Keep Help accessible at all times.
+- Use a downward arrow into a tray for the drop target. Present document statistics as label/value definition-list rows, including zero counts, with one column at narrow mobile widths. Use flat separators and restrained panel borders rather than individual statistic cards.
+
+### Editable workspace and export controls
+
+- Desktop file sidebar at 1000px+, independent Markdown/Preview/Info views, two-pane split at 1200px+, mobile tab navigation and visible primary actions before the editor. Keep the compact visual treatment and narrow-screen overflow checks.
+- Per-file in-memory edited Markdown with bounded undo/redo and reversible reset. Copy, save, image export and combined export use the edited text. Source statistics remain conversion-time values. No document persistence or runtime network dependency.
+- Literal search/replace with case toggle, previous/next match and selection export. Outline includes headings and source page/slide markers. Preview is bounded; editor selection remains available beyond preview limits.
+- File settings are applied before conversion or by explicit reconvert, confirming when edits will be discarded. PDF/PPTX/XLSX range selection uses source numbers, visible worksheet order for Excel. A range save uses original converted units and rejects unconverted requested units; edited text can be saved by selection. Text encodings can be overridden for TXT/HTML/CSV/TSV. Defaults preserve existing conversion.
+- Combine two or more successful results in chosen order, with optional source headings/separators and single Markdown with embedded images, or ZIP with collision-free relative image paths. Respect output and image limits.
+
+### Action hierarchy
+
+Use shared header/main/footer content width and gutter; keep the existing mobile footer visibility. Primary save actions use the brand color, secondary actions use restrained outlines, and edit history uses compact SVG icon buttons with localized accessible names. Batch ZIP save spans the file sidebar, with combine and destructive clear as quiet secondary actions. The mobile Markdown tab uses a document/hash SVG. Preserve button IDs, touch targets and action semantics.
+
+### Release safeguards
+
+- Keep the previous result and edit history until reconversion succeeds. Restore them on cancellation or failure. Initial failed conversions still expose retry.
+- ZIP input validates directory bounds, local header names/methods and CRC-32 of read entries. ZIP export rejects duplicate and traversal paths, caps output at 512 MiB, and embedded Markdown estimates expansion including repeated references (64 million code units).
+- Reject malformed quoted CSV/TSV fields; show actionable localized errors. Text encoding is displayed only for text inputs. External image URLs with unsafe schemes are omitted; user-initiated link navigation is not part of the no-automatic-network guarantee.

@@ -1,6 +1,25 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 - 2026-11-25
+
+- Preserve prior edited results when reconversion fails or is cancelled; validate ZIP integrity and cap archive/Base64 output; reject malformed quoted CSV, improve copy fallback and clarify Help and documentation.
+
+- Refine action hierarchy with compact SVG edit tools, quieter secondary buttons, aligned header/footer content widths and a document-style Markdown navigation icon.
+
+- Add a desktop file workspace, Markdown editing with undo/redo and restore, literal find/replace, outline navigation, and mobile copy/save actions above the editor.
+- Add per-file conversion options, explicit encoding selection, source-range conversion and partial exports; combine multiple documents with selectable order and collision-free image paths.
+
+- Remove the hero title and redundant drop instructions; hide initial explanatory text when files are loaded and restore it when the queue is empty.
+- Use a downward drop arrow, flat file rows, restrained panel borders and compact document-statistic definition lists.
+
+- Improve preview with nested lists, ordered-list starts and local embedded raster images; no remote images are requested.
+- Add cancellation checkpoints for Word document blocks and HTML structural containers; report unsupported spreadsheet and presentation features.
+- Simplify bilingual interface and Help; add offline browser fixture checks and versioned release automation.
+
+- Fix batch ZIP folder collisions, blank/date/time Excel values, sparse worksheet allocation, and large CSV conversion.
+- Detect BOM-marked UTF-16 and Shift_JIS fallback; report omitted Word content and PDF pages without text.
+- Bound ZIP decompression, table expansion and preview output; protect queue limits on Undo and prevent stale queue UI updates.
+- Preserve explicit blank CSV rows and preformatted HTML line breaks; reject empty HTML; hide the mobile local-processing badge.
 
 - Hide only the informational mobile footer and move the existing build-information block intact to the end of Help.
 

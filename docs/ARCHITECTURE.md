@@ -119,3 +119,7 @@ Build and PR-preview infrastructure follows `htmlapps-template` commit `cb90877`
 Same-repository PRs targeting main build and verify the app before creating a Cloudflare Workers Preview. The separate closed-PR workflow removes that preview. Both use the existing `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets; these workflows do not create credentials or change account access. Missing secrets skip preview creation with a notice. Production GitHub Pages still serves `dist`.
 
 `tests/` has locked development-only jsdom dependencies. `scripts/check-repository.ps1` runs the app's actual inline JavaScript against synthetic Office fixtures and queue/export tests. Browser-native PDF, file-picker, download, and layout checks remain separate acceptance gates.
+
+## v1.1.0 application state and release
+
+Each queue item owns conversion settings, source-unit metadata, original Markdown, editable text and bounded undo/redo history. A reconversion retains the preceding result until success; failure or cancellation restores it. The preview is bounded, uses escaped Markdown and local raster Blob URLs, and has no automatic network fetch. Generated artifacts remain derived from the template. The main-only release workflow builds and verifies both HTML variants, then creates the versioned tag/release if absent; PR verification never creates a release.

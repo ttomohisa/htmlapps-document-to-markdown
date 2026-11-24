@@ -72,7 +72,7 @@ test('header uses compact destination language, localized help and actual patch 
   for (const lang of ['en', 'ja']) {
     const { document } = launch(t, lang); const button = document.querySelector('#languageButton');
     assert.equal(button.textContent, lang === 'ja' ? 'EN' : 'JA'); assert.equal(button.title, button.getAttribute('aria-label'));
-    assert.equal(document.querySelector('#versionBadge').textContent, 'v1.0.4');
+    assert.equal(document.querySelector('#versionBadge').textContent, 'v1.1.0');
     assert.equal(document.querySelector('#helpButton').title, document.querySelector('#helpButton').getAttribute('aria-label'));
     if (lang === 'ja') assert.equal(document.querySelector('[data-i18n="localBadge"]').textContent, '完全ローカル処理');
   }
@@ -141,4 +141,230 @@ test('retrying a cancelled text file does not expose image-export actions', asyn
   await app.addFiles([new File(['first'], 'first.txt'), new File(['retry'], 'retry.txt')]); const item = app.items[1]; app.cancelItem(item.id); await until(() => !app.busy);
   document.querySelector(`[data-retry-item="${item.id}"]`).click(); await until(() => !app.busy); app.showSelectedItem(item);
   assert.equal(window.getComputedStyle(document.querySelector('#assetExportOptions')).display, 'none');
+});
+
+test('Excel date, time, elapsed duration and styled blank cells are distinct', t => {
+  const {app}=launch(t); const styles=fmt=>({xfs:[fmt],custom:new Map()});
+  assert.equal(app.xlsxSerialDate(0.5,false,0,styles(20)),'12:00:00');
+  assert.equal(app.xlsxSerialDate(1.5,false,0,styles(46)),'36:00:00');
+  assert.equal(app.xlsxSerialDate('',false,0,styles(14)),null);
+  assert.equal(app.xlsxSerialDate(60,false,0,styles(14)),'1900-02-29');
+  const c=app.parseXml('<c s="0"/>').documentElement;
+  assert.equal(app.xlsxCellValue(c,[],styles(14),false,[],{formulas:0}),'');
+});
+test('sparse Excel ranges are rejected before allocating a rectangular table',t=>{
+  const {app}=launch(t), styles={xfs:[],custom:new Map()};
+  const sheet=app.parseXml('<worksheet><sheetData><row r="1"><c r="A1"><v>1</v></c></row><row r="1048576"><c r="XFD1048576"><v>2</v></c></row></sheetData></worksheet>');
+  assert.throws(()=>app.renderXlsxWorksheet(sheet,[],styles,false,[],{formulas:0}),/XLSX_RANGE/);
+});
+test('Shift_JIS and BOM UTF-16 files decode locally and report source encoding',async t=>{
+  const {app}=launch(t);
+  const sj=await app.convertFile(new File([Uint8Array.from([0x93,0xfa,0x96,0x7b])],'jp.txt'));
+  assert.equal(sj.markdown.trim(),'日本');assert.equal(sj.encoding,'Shift_JIS');
+  const utf=await app.convertFile(new File([Uint8Array.from([255,254,65,0])],'utf.txt'));
+  assert.equal(utf.markdown.trim(),'A');assert.equal(utf.encoding,'UTF-16LE');
+});
+test('large CSV does not spread all rows as function arguments',async t=>{
+  const {app}=launch(t);const r=await app.convertFile(new File(['name\n'+'a\n'.repeat(200000)],'large.csv'));
+  assert.equal(r.stats.rows,200001);
+});
+test('HTML without convertible content fails explicitly and preformatted lines survive',async t=>{
+  const {app}=launch(t);
+  await assert.rejects(app.convertFile(new File(['<script>void 0</script>'],'empty.html')),/EMPTY/);
+  const r=await app.convertFile(new File(['<pre>A\n\n\nB</pre>'],'pre.html'));
+  assert.match(r.markdown,/A\n\n\nB/);
+});
+test('batch ZIP folder allocation avoids collision with existing numeric suffix',async t=>{
+  const {app,window}=launch(t);let saved;
+  window.URL.createObjectURL=blob=>{saved=blob;return 'blob:test'};window.URL.revokeObjectURL=()=>{};window.HTMLAnchorElement.prototype.click=function(){};
+  await app.addFiles([new File(['A'],'same.txt'),new File(['B'],'same.txt'),new File(['C'],'same-2.txt')]);await until(()=>!app.busy);
+  app.downloadAllResults();const zip=await app.openZip(await saved.arrayBuffer());
+  assert.equal((await zip.read('same/same.md')).trim(),'A');
+  assert.equal((await zip.read('same-2/same.md')).trim(),'B');
+  assert.equal((await zip.read('same-2-2/same-2.md')).trim(),'C');
+});
+test('CSV retains explicit final empty row',async t=>{
+  const {app}=launch(t);const r=await app.convertFile(new File(['a,b\nx,y\n,\n'],'empty-row.csv'));
+  assert.equal(r.stats.rows,3);assert.match(r.markdown,/\|  \|  \|/);
+});
+
+test('HTML whitespace follows HTML semantics and explicit line breaks survive',async t=>{
+ const {app}=launch(t);const r=await app.convertFile(new File(['<p>A\n B<br>C</p>'],'line.html'));
+ assert.match(r.markdown,/A B  \nC/);assert.match(app.markdownToSafeHtml(r.markdown),/A B<br>C/);
+});
+test('safe preview does not rewrite emphasis in generated link attributes',t=>{
+ const {app}=launch(t);assert.match(app.markdownToSafeHtml('[Link](https://example.com/a*b*c)'),/href="https:\/\/example\.com\/a\*b\*c"/);
+ assert.doesNotMatch(app.markdownToSafeHtml('[Link](java\t script:bad)'),/<a /);
+ assert.doesNotMatch(app.markdownToSafeHtml('[Link](javascript:bad)'),/<a /);
+});
+test('CSV conversion cancellation is observed at a cooperative checkpoint',async t=>{
+ const {app}=launch(t);const control={cancelRequested:false};
+ const result=app.convertFile(new File(['a\n'+'b\n'.repeat(200000)],'large.csv'),control);
+ setTimeout(()=>{control.cancelRequested=true},0);
+ await assert.rejects(result,/CANCELLED/);
+});
+
+test('preview preserves nested lists and ordered start values',t=>{
+ const {app,document}=launch(t);const div=document.createElement('div');
+ div.innerHTML=app.markdownToSafeHtml('3. Parent\n  - Child\n4. Next');
+ assert.equal(div.querySelector('ol').start,3);assert.equal(div.querySelector('ol > li > ul > li').textContent,'Child');
+ assert.equal(div.querySelectorAll('ol > li').length,2);
+});
+test('embedded raster images render with blob URLs; external references remain placeholders',async t=>{
+ const {app,document}=launch(t);
+ await app.addFiles([fixture('sample.docx')]);await until(()=>!app.busy);
+ assert.match(document.querySelector('#previewSurface img').getAttribute('src'),/^blob:/);
+ assert.doesNotMatch(app.markdownToSafeHtml('![remote](https://example.test/image.png)'),/<img/);
+ app.resetSession();assert.equal(document.querySelector('#previewSurface img'),null);
+});
+test('custom Word outline levels and direct body override are respected',t=>{
+ const {app}=launch(t);
+ const styles='<w:style w:type="paragraph" w:styleId="Custom"><w:pPr><w:outlineLvl w:val="1"/></w:pPr></w:style>';
+ assert.equal(paragraphInfo(app,styles,'<w:pStyle w:val="Custom"/>').heading,2);
+ assert.equal(paragraphInfo(app,styles,'<w:pStyle w:val="Custom"/><w:outlineLvl w:val="9"/>').heading,0);
+});
+test('HTML ordered-list start is preserved',async t=>{
+ const {app}=launch(t);const r=await app.convertFile(new File(['<ol start="5"><li>Item</li></ol>'],'list.html'));
+ assert.match(r.markdown,/^5\. Item/m);
+});
+test('HTML conversion cooperates with cancellation',async t=>{
+ const {app}=launch(t);const control={cancelRequested:false};
+ const promise=app.convertFile(new File(['<div>text</div>'.repeat(500)],'large.html'),control);
+ setTimeout(()=>{control.cancelRequested=true},0);await assert.rejects(promise,/CANCELLED/);
+});
+
+test('intro has no title or redundant drop subtitle and hides until queue is empty',async t=>{
+ const {app,document}=launch(t);
+ const intro=document.querySelector('#pageIntro'),fileIntro=document.querySelector('#fileIntro');
+ assert.equal(document.querySelector('#heroTitle'),null);
+ assert.equal(document.querySelector('[data-i18n="dropSub"]'),null);
+ assert.equal(intro.classList.contains('hidden'),false);
+ await app.addFiles([new File(['# Sample'],'one.txt')]);await until(()=>!app.busy);
+ assert.equal(intro.classList.contains('hidden'),true);
+ assert.equal(fileIntro.classList.contains('hidden'),true);
+ app.removeItem(app.items[0].id);
+ assert.equal(intro.classList.contains('hidden'),false);
+ document.querySelector('#appToastAction').click();
+ assert.equal(intro.classList.contains('hidden'),true);
+ app.resetSession();
+ assert.equal(intro.classList.contains('hidden'),false);
+ assert.equal(fileIntro.classList.contains('hidden'),false);
+});
+test('document statistics are labeled definition-list rows and retain zero values',async t=>{
+ const {app,document}=launch(t,'ja');
+ await app.addFiles([fixture('sample.pptx')]);await until(()=>!app.busy);
+ const stats=document.querySelector('dl.stats-grid');
+ assert.ok(stats);
+ assert.equal(stats.querySelector('.stat-card'),null);
+ const rows=[...stats.querySelectorAll('.stat-row')].map(row=>[row.querySelector('dt').textContent,row.querySelector('dd').textContent]);
+ assert.ok(rows.some(([label])=>label==='発表者ノート'));
+ assert.ok(rows.length>=8);
+ document.querySelector('#languageButton').click();
+ assert.equal(document.documentElement.lang,'en');
+ assert.ok([...document.querySelectorAll('.stats-grid dt')].some(el=>el.textContent==='Speaker notes'));
+ app.resetSession();
+ await app.addFiles([new File(['<p>Only text</p>'],'zero-counts.html')]);await until(()=>!app.busy);
+ const zeroRows=new Map([...document.querySelectorAll('.stats-grid .stat-row')].map(row=>[row.querySelector('dt').textContent,row.querySelector('dd').textContent]));
+ assert.equal(zeroRows.get('Images'),'0');
+ assert.equal(zeroRows.get('Tables'),'0');
+});
+
+test('partial conversion uses original slide and visible-sheet numbers',async t=>{
+ const {app}=launch(t);
+ const ppt=await app.convertFile(fixture('sample.pptx'),{settings:{range:'2'}});
+ assert.match(ppt.markdown,/<!-- Slide 2 -->/);assert.doesNotMatch(ppt.markdown,/Quarterly Review/);assert.equal(ppt.stats.slides,1);assert.equal(ppt.catalog.length,2);
+ const xls=await app.convertFile(fixture('sample.xlsx'),{settings:{range:'2'}});
+ assert.match(xls.markdown,/Dates & Formulas/);assert.doesNotMatch(xls.markdown,/売上 2026/);assert.equal(xls.stats.sheets,1);
+ await assert.rejects(app.convertFile(fixture('sample.pptx'),{settings:{range:'3'}}),/INVALID_RANGE/);
+});
+test('partial save selects source units without unrelated image assets',async t=>{
+ const {app}=launch(t);const r=await app.convertFile(fixture('sample.pptx'));
+ const part=app.selectPartialOutput(r,'2');assert.match(part.markdown,/Risks/);assert.equal(part.assets.length,0);
+ assert.throws(()=>app.selectPartialOutput(r,'0'),/INVALID_RANGE/);
+});
+test('explicit decoding can override auto detection',async t=>{
+ const {app}=launch(t);const result=await app.convertFile(new File([Uint8Array.of(0xe9)],'legacy.txt'),{settings:{encoding:'Windows-1252'}});
+ assert.equal(result.markdown.trim(),'é');assert.equal(result.encoding,'Windows-1252');
+});
+test('output options preserve code and default output, omit requested features',async t=>{
+ const {app}=launch(t);const r=await app.convertFile(fixture('sample.pptx'),{settings:{images:false,notes:false,links:false,headings:false,tables:false,formatting:false}});
+ assert.equal(r.assets.length,0);assert.doesNotMatch(r.markdown,/Speaker Notes|!\[|https:\/\/example\.com|^## /m);assert.match(r.markdown,/Region\tRevenue/);
+ const code='**bold**\n\n\x60\x60\x60\n**literal**\n\x60\x60\x60\n';assert.match(app.transformOutput(code,{headings:true,formatting:false,links:true,tables:true,images:true}),/\*\*literal\*\*/);
+});
+test('combined documents namespace their local image references',async t=>{
+ const {app}=launch(t);const file=fixture('sample.docx'),result=await app.convertFile(file);
+ const out=app.combineResults([{file,result},{file,result}],{headings:true,separator:true});
+ assert.equal(out.assets.length,2);assert.notEqual(out.assets[0].path,out.assets[1].path);assert.ok(out.assets.every(asset=>out.markdown.includes(']('+asset.path+')')));assert.match(out.markdown,/\n---\n/);
+});
+
+test('per-file edits survive selection changes and support undo, redo and restore',async t=>{
+ const {app,document,window}=launch(t);await app.addFiles([new File(['Original'],'a.txt'),new File(['Other'],'b.txt')]);await until(()=>!app.busy);
+ const editor=document.querySelector('#markdownOutput');assert.equal(editor.readOnly,false);
+ editor.value='Edited';editor.dispatchEvent(new window.Event('input'));assert.equal(app.items[0].result.markdown,'Edited');
+ app.showSelectedItem(app.items[1]);assert.match(editor.value,/Other/);app.showSelectedItem(app.items[0]);assert.equal(editor.value,'Edited');
+ document.querySelector('#editUndo').click();assert.match(editor.value,/Original/);document.querySelector('#editRedo').click();assert.equal(editor.value,'Edited');document.querySelector('#editReset').click();assert.match(editor.value,/Original/);
+});
+test('editor find and replace updates actual exported Markdown',async t=>{
+ const {app,document,window}=launch(t);await app.addFiles([new File(['one one'],'a.txt')]);await until(()=>!app.busy);
+ const find=document.querySelector('#findText');find.value='one';find.dispatchEvent(new window.Event('input'));document.querySelector('#replaceText').value='two';document.querySelector('#replaceAll').click();assert.equal(app.result.markdown.trim(),'two two');
+});
+test('conversion settings apply on first load and on reconversion',async t=>{
+ const {app,document,window}=launch(t);const encoding=document.querySelector('#sourceEncoding');encoding.value='Windows-1252';encoding.dispatchEvent(new window.Event('change',{bubbles:true}));await app.addFiles([new File([Uint8Array.of(0xe9)],'legacy.txt')]);await until(()=>!app.busy);assert.equal(app.result.markdown.trim(),'é');
+ encoding.value='Shift_JIS';encoding.dispatchEvent(new window.Event('change',{bubbles:true}));document.querySelector('#applyConversion').click();await until(()=>!app.busy);assert.equal(app.result.encoding,'Shift_JIS');
+});
+test('outline lists document sections and preview anchors',async t=>{
+ const {app,document}=launch(t);await app.addFiles([fixture('sample.pptx')]);await until(()=>!app.busy);
+ assert.ok([...document.querySelectorAll('#markdownOutline option')].some(o=>o.textContent==='Slide 2'));assert.ok(document.querySelector('#previewSurface [data-source-line]'));
+});
+
+test('range picker and partial export use original source numbers',async t=>{
+ const {app,document,window}=launch(t);await app.addFiles([fixture('sample.pptx')]);await until(()=>!app.busy);
+ const unit=document.querySelector('#sourceUnits input[value="1"]');assert.ok(unit);unit.checked=false;unit.dispatchEvent(new window.Event('change'));
+ assert.equal(document.querySelector('#sourceRange').value,'2');document.querySelector('#applyConversion').click();await until(()=>!app.busy);
+ assert.match(app.result.markdown,/Slide 2/);assert.doesNotMatch(app.result.markdown,/Slide 1/);assert.equal(document.querySelectorAll('#partialUnits input').length,1);
+});
+test('selected edited text exports only selected content',async t=>{
+ const {app,window,document}=launch(t);await app.addFiles([new File(['First Second'],'one.txt')]);await until(()=>!app.busy);
+ const editor=document.querySelector('#markdownOutput');editor.setSelectionRange(0,5);editor.dispatchEvent(new window.Event('select'));let saved;window.URL.createObjectURL=blob=>{saved=blob;return 'blob:test'};window.URL.revokeObjectURL=()=>{};window.HTMLAnchorElement.prototype.click=function(){};
+ document.querySelector('#saveSelection').click();assert.equal(await saved.text(),'First');
+});
+
+test('action SVGs survive localization and icon controls have accessible names',t=>{
+ const {document}=launch(t,'ja');
+ for(const id of ['copyButton','downloadButton','editUndo','editRedo','editReset','saveSelection','downloadAllButton','combineButton','clearButton','mobileMarkdown']){
+  const button=document.getElementById(id);assert.ok(button.querySelector('svg'),id);
+  assert.ok(button.textContent.trim()||button.getAttribute('aria-label'),id);
+ }
+ assert.equal(document.querySelector('#editUndo').title,document.querySelector('#editUndo').getAttribute('aria-label'));
+ document.querySelector('#languageButton').click();
+ for(const id of ['copyButton','downloadButton','editUndo','editRedo','editReset','saveSelection','downloadAllButton','combineButton','clearButton'])assert.ok(document.getElementById(id).querySelector('svg'),id);
+ assert.equal(document.querySelector('#editUndo').title,document.querySelector('#editUndo').getAttribute('aria-label'));
+ assert.ok(document.querySelector('#mobileMarkdown svg path').getAttribute('d').includes('M6 3'));
+});
+
+test('failed reconversion preserves the previous result and edit history',async t=>{
+ const {app,document,window}=launch(t);let calls=0;const file={name:'retry.txt',size:6,async text(){if(++calls>1)throw new Error('EMPTY');return 'Before'}};
+ await app.addFiles([file]);await until(()=>!app.busy);const item=app.items[0],original=item.result.markdown;
+ document.querySelector('#applyConversion').click();await until(()=>!app.busy);
+ assert.equal(item.result.markdown,original);assert.ok(item.error);assert.equal(item.status,'done');
+ const editor=document.querySelector('#markdownOutput');editor.value='Edited';editor.dispatchEvent(new window.Event('input'));
+ assert.equal(item.result.markdown,'Edited');document.querySelector('#editUndo').click();assert.equal(item.result.markdown,original);
+});
+test('ZIP export rejects duplicates and unsafe paths and detects corrupt entries',async t=>{
+ const {app}=launch(t);const bytes=Uint8Array.of(65);
+ assert.throws(()=>app.buildStoredZip([{path:'a.md',bytes},{path:'A.md',bytes}]),/INVALID_EXPORT/);
+ assert.throws(()=>app.buildStoredZip([{path:'../a.md',bytes}]),/INVALID_EXPORT/);
+ const zip=await app.buildStoredZip([{path:'a.md',bytes}]).arrayBuffer();new Uint8Array(zip)[34]=66;
+ const reader=await app.openZip(zip);await assert.rejects(reader.read('a.md'),/DOCX_INVALID/);
+});
+test('embedded export limit counts repeated references',t=>{
+ const {app}=launch(t);const path='images/a.png',bytes={length:20000000};
+ assert.throws(()=>app.checkEmbeddedLimit(('![a]('+path+')\n').repeat(3),[{path,bytes}]),/OUTPUT_LIMIT/);
+});
+test('malformed quoted CSV rejects trailing text',async t=>{
+ const {app}=launch(t);await assert.rejects(app.convertFile(new File(['"a"b,c'],'bad.csv')),/MALFORMED_CSV/);
+});
+test('HTML unsafe image URL is not retained and parentheses are encoded in links',async t=>{
+ const {app}=launch(t);const r=await app.convertFile(new File(['<p><img alt="sample" src="javascript:bad"><a href="https://example.test/a(b)">link</a></p>'],'safe.html'));
+ assert.doesNotMatch(r.markdown,/javascript:/);assert.match(r.markdown,/https:\/\/example\.test\/a\(b%29/);
 });

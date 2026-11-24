@@ -22,9 +22,24 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
+      - name: Validate PowerShell syntax and encoding
+        shell: powershell
+        run: .\scripts\check-powershell-syntax.ps1
       - name: Build and verify
         shell: pwsh
         run: ./scripts/check-repository.ps1
+      - name: Verify mobile Help in Chromium
+        shell: pwsh
+        run: |
+          $testTools = Join-Path $env:RUNNER_TEMP "mobile-help-tests"
+          npm install --prefix $testTools --ignore-scripts --no-audit --no-fund --package-lock=false playwright@1.58.2
+          if ($LASTEXITCODE -ne 0) { throw "Playwright installation failed." }
+          $env:NODE_PATH = Join-Path $testTools "node_modules"
+          & (Join-Path $testTools "node_modules/.bin/playwright.cmd") install chromium
+          if ($LASTEXITCODE -ne 0) { throw "Chromium installation failed." }
+          New-Item -ItemType Directory -Force -Path test-results/mobile-help | Out-Null
+          node scripts/mobile-help.browser.cjs 2>&1 | Tee-Object -FilePath test-results/mobile-help/results.log
+          if ($LASTEXITCODE -ne 0) { throw "Mobile Help browser regression failed." }
       - uses: actions/upload-artifact@v7
         with:
           name: release-html

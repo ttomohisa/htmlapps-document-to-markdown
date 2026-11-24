@@ -63,3 +63,7 @@
 Run `npm ci --ignore-scripts` then `npm test` in this directory with Node.js 24. The repository check runs both commands too. The harness evaluates the actual inline app script in jsdom, with native Node File/Blob/decompression APIs; it does not execute imported document scripts or load external assets. Browser-native PDF, picker, download and layout behavior require the separate browser acceptance pass.
 
 `fixtures/style-lists.docx` is a synthetic Word document using the built-in ListBullet style. It reproduces the previously flattened style-inherited bullets. The suite also covers basedOn inheritance, direct overrides and numId zero, existing DOCX/PPTX/XLSX fixtures, text formats, invalid files, partial conversions, cancellation/retry, stale-work reset, byte-preserved images, exact Markdown saves, duplicate-name batch ZIPs, and localized headers.
+
+## v1.1.0 regressions
+
+The Node.js 24 suite covers source ranges, text encoding override, edit history, search/replace, partial and combined exports, range pickers, accessible SVG controls, reconversion rollback, malformed CSV and ZIP integrity/export bounds. The PR Chromium workflow checks both generated variants at multiple desktop/mobile sizes in Japanese and English, including offline Office/PDF fixtures, mobile editing and saving, PDF ranges and combined export. See workflow artifacts for current screenshots; checked-in screenshots depict an earlier interface.

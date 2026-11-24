@@ -23,7 +23,7 @@ function launch(t, language = 'en') {
     .replace('__APP_CONFIG_JSON__', JSON.stringify(config))
     .replace('__BUILD_MANIFEST_JSON__', '{"dependencies":[]}')
     .replace('__EMBEDDED_ASSET_BUNDLE_JSON__', '{}');
-  script = script.replace(/\}\)\(\);\s*$/, `window.testApp = { convertFile, decodeTextFile, parseUnitRange, transformOutput, selectPartialOutput, combineResults, xlsxSerialDate, xlsxCellValue, renderXlsxWorksheet, docxToMarkdown, parseXml, parseDocxStyles, parseDocxNumbering, docxParagraphInfo, renderDocxBlocks, addFiles, cancelItem, resetSession, removeItem, processQueue, showSelectedItem, normalizedFilenameBase, markdownToSafeHtml, openZip, downloadAllResults, downloadMarkdown, get items() { return batchItems; }, get result() { return currentResult; }, get busy() { return processingQueue; } }; })();`);
+  script = script.replace(/\}\)\(\);\s*$/, `window.testApp = { convertFile, decodeTextFile, parseUnitRange, transformOutput, buildStoredZip, checkEmbeddedLimit, selectPartialOutput, combineResults, xlsxSerialDate, xlsxCellValue, renderXlsxWorksheet, docxToMarkdown, parseXml, parseDocxStyles, parseDocxNumbering, docxParagraphInfo, renderDocxBlocks, addFiles, cancelItem, resetSession, removeItem, processQueue, showSelectedItem, normalizedFilenameBase, markdownToSafeHtml, openZip, downloadAllResults, downloadMarkdown, get items() { return batchItems; }, get result() { return currentResult; }, get busy() { return processingQueue; } }; })();`);
   window.eval(script);
   if (t) t.after(() => window.close());
   return { window, document: window.document, app: window.testApp, messages };

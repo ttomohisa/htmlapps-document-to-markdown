@@ -341,3 +341,30 @@ test('action SVGs survive localization and icon controls have accessible names',
  assert.equal(document.querySelector('#editUndo').title,document.querySelector('#editUndo').getAttribute('aria-label'));
  assert.ok(document.querySelector('#mobileMarkdown svg path').getAttribute('d').includes('M6 3'));
 });
+
+test('failed reconversion preserves the previous result and edit history',async t=>{
+ const {app,document,window}=launch(t);let calls=0;const file={name:'retry.txt',size:6,async text(){if(++calls>1)throw new Error('EMPTY');return 'Before'}};
+ await app.addFiles([file]);await until(()=>!app.busy);const item=app.items[0],original=item.result.markdown;
+ document.querySelector('#applyConversion').click();await until(()=>!app.busy);
+ assert.equal(item.result.markdown,original);assert.ok(item.error);assert.equal(item.status,'done');
+ const editor=document.querySelector('#markdownOutput');editor.value='Edited';editor.dispatchEvent(new window.Event('input'));
+ assert.equal(item.result.markdown,'Edited');document.querySelector('#editUndo').click();assert.equal(item.result.markdown,original);
+});
+test('ZIP export rejects duplicates and unsafe paths and detects corrupt entries',async t=>{
+ const {app}=launch(t);const bytes=Uint8Array.of(65);
+ assert.throws(()=>app.buildStoredZip([{path:'a.md',bytes},{path:'A.md',bytes}]),/INVALID_EXPORT/);
+ assert.throws(()=>app.buildStoredZip([{path:'../a.md',bytes}]),/INVALID_EXPORT/);
+ const zip=await app.buildStoredZip([{path:'a.md',bytes}]).arrayBuffer();new Uint8Array(zip)[34]=66;
+ const reader=await app.openZip(zip);await assert.rejects(reader.read('a.md'),/DOCX_INVALID/);
+});
+test('embedded export limit counts repeated references',t=>{
+ const {app}=launch(t);const path='images/a.png',bytes={length:20000000};
+ assert.throws(()=>app.checkEmbeddedLimit(('![a]('+path+')\n').repeat(3),[{path,bytes}]),/OUTPUT_LIMIT/);
+});
+test('malformed quoted CSV rejects trailing text',async t=>{
+ const {app}=launch(t);await assert.rejects(app.convertFile(new File(['"a"b,c'],'bad.csv')),/MALFORMED_CSV/);
+});
+test('HTML unsafe image URL is not retained and parentheses are encoded in links',async t=>{
+ const {app}=launch(t);const r=await app.convertFile(new File(['<p><img alt="sample" src="javascript:bad"><a href="https://example.test/a(b)">link</a></p>'],'safe.html'));
+ assert.doesNotMatch(r.markdown,/javascript:/);assert.match(r.markdown,/https:\/\/example\.test\/a\(b%29/);
+});

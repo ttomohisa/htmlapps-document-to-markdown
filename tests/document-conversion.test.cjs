@@ -258,7 +258,13 @@ test('document statistics are labeled definition-list rows and retain zero value
  assert.equal(stats.querySelector('.stat-card'),null);
  const rows=[...stats.querySelectorAll('.stat-row')].map(row=>[row.querySelector('dt').textContent,row.querySelector('dd').textContent]);
  assert.ok(rows.some(([label])=>label==='発表者ノート'));
- assert.ok(rows.some(([,value])=>value==='0')||rows.length>=8);
+ assert.ok(rows.length>=8);
  document.querySelector('#languageButton').click();
- assert.ok([...document.querySelectorAll('.stats-grid dt')].some(el=>el.textContent==='Speaker Notes'));
+ assert.equal(document.documentElement.lang,'en');
+ assert.ok([...document.querySelectorAll('.stats-grid dt')].some(el=>el.textContent==='Speaker notes'));
+ app.resetSession();
+ await app.addFiles([new File(['<p>Only text</p>'],'zero-counts.html')]);await until(()=>!app.busy);
+ const zeroRows=new Map([...document.querySelectorAll('.stats-grid .stat-row')].map(row=>[row.querySelector('dt').textContent,row.querySelector('dd').textContent]));
+ assert.equal(zeroRows.get('Images'),'0');
+ assert.equal(zeroRows.get('Tables'),'0');
 });

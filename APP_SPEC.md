@@ -351,3 +351,10 @@ Legacy `.doc` / `.ppt`, AI summarization, external AI APIs, remote URL conversio
 - Allocate unique ZIP folder names across all results, including generated suffixes. Recheck input limits when undoing removal.
 
 - CSV/TSV yield and check cancellation while parsing and formatting; PPTX/XLSX check between units. Keep the local-processing badge on desktop only.
+
+## v1.1.0 follow-up
+
+- Preview supported raster Office assets via revoked local Blob URLs (100 unique assets / 32 MiB source bytes); remote and unsupported images remain placeholders.
+- Preview nested list hierarchy and ordered start values. Word and HTML yield between structural blocks; parsing and individual heavy blocks are still synchronous.
+- Report hidden slides, merged presentation cells, spreadsheet hyperlink targets and non-reproduced numeric formats.
+- Release only from verified main builds, with versioned tags and both standalone HTML variants.

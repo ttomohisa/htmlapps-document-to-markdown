@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 - 2026-11-24
+
+- Improve preview with nested lists, ordered-list starts and local embedded raster images; no remote images are requested.
+- Add cancellation checkpoints for Word document blocks and HTML structural containers; report unsupported spreadsheet and presentation features.
+- Simplify bilingual interface and Help; add offline browser fixture checks and versioned release automation.
 
 - Fix batch ZIP folder collisions, blank/date/time Excel values, sparse worksheet allocation, and large CSV conversion.
 - Detect BOM-marked UTF-16 and Shift_JIS fallback; report omitted Word content and PDF pages without text.

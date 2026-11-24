@@ -19,6 +19,27 @@ async function smoke(page,results,file){
  console.log('PASS synthetic HTML to edited-name Markdown '+file);
 }
 
+async function conversionSmoke(page,errors){
+ const root=path.resolve(__dirname,'..','tests','fixtures');
+ async function load(name,expected){
+   await page.locator('#fileInput').setInputFiles(path.join(root,name));
+   await page.waitForFunction(name=>[...document.querySelectorAll('.queue-item')].some(el=>el.querySelector('.file-name')?.textContent===name&&['done','review','partial','failed'].includes(el.querySelector('.queue-state')?.dataset.state)),name,{timeout:60000});
+   const row=page.locator('.queue-item').filter({has:page.locator('.file-name',{hasText:name})}).first();
+   const status=await row.locator('.queue-state').getAttribute('data-state');
+   if(expected){assert.ok(['done','review','partial'].includes(status),name+' '+status);await row.locator('.queue-main').click();assert.match(await page.locator('#markdownOutput').inputValue(),expected,name);}
+   else assert.equal(status,'failed',name);
+ }
+ await load('sample.docx',/テスト文書/);
+ assert.equal(await page.locator('#previewSurface img').count(),1);
+ await load('sample.pptx',/Quarterly Review/);
+ await load('sample.xlsx',/売上 2026/);
+ await load('sample.pdf',/日本語PDFテスト/);
+ const start=errors.length;
+ await load('scanned.pdf',null);
+ const expectedErrors=errors.splice(start).filter(message=>!message.includes('PDF_NO_TEXT'));
+ errors.push(...expectedErrors);
+ console.log('PASS local Office, PDF and scanned PDF fixtures');
+}
 async function main() {
   const results = path.resolve(__dirname, '..', 'test-results', 'mobile-help');
   fs.mkdirSync(results, { recursive: true });
@@ -101,6 +122,7 @@ async function main() {
             await page.mouse.click(2, 1);
             assert.equal(await page.locator('#helpDialog').isVisible(), false, label + ': backdrop');
             if(file!=='document-to-markdown.html' && language==='ja' && width===360) await smoke(page,results,file);
+            if(file!=='document-to-markdown.html'&&language==='en'&&width===1360){await context.setOffline(true);await conversionSmoke(page,errors);}
             assert.deepEqual(errors, [], label + ': console errors');
             assert.deepEqual(requests, [], label + ': external runtime requests');
             console.log('PASS ' + label);

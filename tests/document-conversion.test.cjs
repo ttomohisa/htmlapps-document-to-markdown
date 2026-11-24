@@ -203,3 +203,32 @@ test('CSV conversion cancellation is observed at a cooperative checkpoint',async
  setTimeout(()=>{control.cancelRequested=true},0);
  await assert.rejects(result,/CANCELLED/);
 });
+
+test('preview preserves nested lists and ordered start values',t=>{
+ const {app,document}=launch(t);const div=document.createElement('div');
+ div.innerHTML=app.markdownToSafeHtml('3. Parent\n  - Child\n4. Next');
+ assert.equal(div.querySelector('ol').start,3);assert.equal(div.querySelector('ol > li > ul > li').textContent,'Child');
+ assert.equal(div.querySelectorAll('ol > li').length,2);
+});
+test('embedded raster images render with blob URLs; external references remain placeholders',async t=>{
+ const {app,document}=launch(t);
+ await app.addFiles([fixture('sample.docx')]);await until(()=>!app.busy);
+ assert.match(document.querySelector('#previewSurface img').getAttribute('src'),/^blob:/);
+ assert.doesNotMatch(app.markdownToSafeHtml('![remote](https://example.test/image.png)'),/<img/);
+ app.resetSession();assert.equal(document.querySelector('#previewSurface img'),null);
+});
+test('custom Word outline levels and direct body override are respected',t=>{
+ const {app}=launch(t);
+ const styles='<w:style w:type="paragraph" w:styleId="Custom"><w:pPr><w:outlineLvl w:val="1"/></w:pPr></w:style>';
+ assert.equal(paragraphInfo(app,styles,'<w:pStyle w:val="Custom"/>').heading,2);
+ assert.equal(paragraphInfo(app,styles,'<w:pStyle w:val="Custom"/><w:outlineLvl w:val="9"/>').heading,0);
+});
+test('HTML ordered-list start is preserved',async t=>{
+ const {app}=launch(t);const r=await app.convertFile(new File(['<ol start="5"><li>Item</li></ol>'],'list.html'));
+ assert.match(r.markdown,/^5\. Item/m);
+});
+test('HTML conversion cooperates with cancellation',async t=>{
+ const {app}=launch(t);const control={cancelRequested:false};
+ const promise=app.convertFile(new File(['<div>text</div>'.repeat(500)],'large.html'),control);
+ setTimeout(()=>{control.cancelRequested=true},0);await assert.rejects(promise,/CANCELLED/);
+});

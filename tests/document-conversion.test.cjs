@@ -309,10 +309,22 @@ test('editor find and replace updates actual exported Markdown',async t=>{
  const find=document.querySelector('#findText');find.value='one';find.dispatchEvent(new window.Event('input'));document.querySelector('#replaceText').value='two';document.querySelector('#replaceAll').click();assert.equal(app.result.markdown.trim(),'two two');
 });
 test('conversion settings apply on first load and on reconversion',async t=>{
- const {app,document,window}=launch(t);const encoding=document.querySelector('#sourceEncoding');encoding.value='Windows-1252';encoding.dispatchEvent(new window.Event('change'));await app.addFiles([new File([Uint8Array.of(0xe9)],'legacy.txt')]);await until(()=>!app.busy);assert.equal(app.result.markdown.trim(),'é');
- encoding.value='Shift_JIS';encoding.dispatchEvent(new window.Event('change'));document.querySelector('#applyConversion').click();await until(()=>!app.busy);assert.equal(app.result.encoding,'Shift_JIS');
+ const {app,document,window}=launch(t);const encoding=document.querySelector('#sourceEncoding');encoding.value='Windows-1252';encoding.dispatchEvent(new window.Event('change',{bubbles:true}));await app.addFiles([new File([Uint8Array.of(0xe9)],'legacy.txt')]);await until(()=>!app.busy);assert.equal(app.result.markdown.trim(),'é');
+ encoding.value='Shift_JIS';encoding.dispatchEvent(new window.Event('change',{bubbles:true}));document.querySelector('#applyConversion').click();await until(()=>!app.busy);assert.equal(app.result.encoding,'Shift_JIS');
 });
 test('outline lists document sections and preview anchors',async t=>{
  const {app,document}=launch(t);await app.addFiles([fixture('sample.pptx')]);await until(()=>!app.busy);
  assert.ok([...document.querySelectorAll('#markdownOutline option')].some(o=>o.textContent==='Slide 2'));assert.ok(document.querySelector('#previewSurface [data-source-line]'));
+});
+
+test('range picker and partial export use original source numbers',async t=>{
+ const {app,document,window}=launch(t);await app.addFiles([fixture('sample.pptx')]);await until(()=>!app.busy);
+ const unit=document.querySelector('#sourceUnits input[value="1"]');assert.ok(unit);unit.checked=false;unit.dispatchEvent(new window.Event('change'));
+ assert.equal(document.querySelector('#sourceRange').value,'2');document.querySelector('#applyConversion').click();await until(()=>!app.busy);
+ assert.match(app.result.markdown,/Slide 2/);assert.doesNotMatch(app.result.markdown,/Slide 1/);assert.equal(document.querySelectorAll('#partialUnits input').length,1);
+});
+test('selected edited text exports only selected content',async t=>{
+ const {app,window,document}=launch(t);await app.addFiles([new File(['First Second'],'one.txt')]);await until(()=>!app.busy);
+ const editor=document.querySelector('#markdownOutput');editor.setSelectionRange(0,5);editor.dispatchEvent(new window.Event('select'));let saved;window.URL.createObjectURL=blob=>{saved=blob;return 'blob:test'};window.URL.revokeObjectURL=()=>{};window.HTMLAnchorElement.prototype.click=function(){};
+ document.querySelector('#saveSelection').click();assert.equal(await saved.text(),'First');
 });

@@ -2,6 +2,9 @@
 
 ## 1.1.0 - 2026-11-24
 
+- Add a desktop file workspace, Markdown editing with undo/redo and restore, literal find/replace, outline navigation, and mobile copy/save actions above the editor.
+- Add per-file conversion options, explicit encoding selection, source-range conversion and partial exports; combine multiple documents with selectable order and collision-free image paths.
+
 - Remove the hero title and redundant drop instructions; hide initial explanatory text when files are loaded and restore it when the queue is empty.
 - Use a downward drop arrow, flat file rows, restrained panel borders and compact document-statistic definition lists.
 

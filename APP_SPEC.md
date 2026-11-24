@@ -363,3 +363,11 @@ Legacy `.doc` / `.ppt`, AI summarization, external AI APIs, remote URL conversio
 
 - No separate hero heading. Show the introduction and initial file-limit text only while the file queue is empty; restore them when the final item is removed or the session is cleared. Keep Help accessible at all times.
 - Use a downward arrow into a tray for the drop target. Present document statistics as label/value definition-list rows, including zero counts, with one column at narrow mobile widths. Use flat separators and restrained panel borders rather than individual statistic cards.
+
+### Editable workspace and export controls
+
+- Desktop file sidebar at 1000px+, independent Markdown/Preview/Info views, two-pane split at 1200px+, mobile tab navigation and visible primary actions before the editor. Keep the compact visual treatment and narrow-screen overflow checks.
+- Per-file in-memory edited Markdown with bounded undo/redo and reversible reset. Copy, save, image export and combined export use the edited text. Source statistics remain conversion-time values. No document persistence or runtime network dependency.
+- Literal search/replace with case toggle, previous/next match and selection export. Outline includes headings and source page/slide markers. Preview is bounded; editor selection remains available beyond preview limits.
+- File settings are applied before conversion or by explicit reconvert, confirming when edits will be discarded. PDF/PPTX/XLSX range selection uses source numbers, visible worksheet order for Excel. A range save uses original converted units and rejects unconverted requested units; edited text can be saved by selection. Text encodings can be overridden for TXT/HTML/CSV/TSV. Defaults preserve existing conversion.
+- Combine two or more successful results in chosen order, with optional source headings/separators and single Markdown with embedded images, or ZIP with collision-free relative image paths. Respect output and image limits.

@@ -371,3 +371,7 @@ Legacy `.doc` / `.ppt`, AI summarization, external AI APIs, remote URL conversio
 - Literal search/replace with case toggle, previous/next match and selection export. Outline includes headings and source page/slide markers. Preview is bounded; editor selection remains available beyond preview limits.
 - File settings are applied before conversion or by explicit reconvert, confirming when edits will be discarded. PDF/PPTX/XLSX range selection uses source numbers, visible worksheet order for Excel. A range save uses original converted units and rejects unconverted requested units; edited text can be saved by selection. Text encodings can be overridden for TXT/HTML/CSV/TSV. Defaults preserve existing conversion.
 - Combine two or more successful results in chosen order, with optional source headings/separators and single Markdown with embedded images, or ZIP with collision-free relative image paths. Respect output and image limits.
+
+### Action hierarchy
+
+Use shared header/main/footer content width and gutter; keep the existing mobile footer visibility. Primary save actions use the brand color, secondary actions use restrained outlines, and edit history uses compact SVG icon buttons with localized accessible names. Batch ZIP save spans the file sidebar, with combine and destructive clear as quiet secondary actions. The mobile Markdown tab uses a document/hash SVG. Preserve button IDs, touch targets and action semantics.

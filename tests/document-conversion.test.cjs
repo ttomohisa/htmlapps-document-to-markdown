@@ -328,3 +328,16 @@ test('selected edited text exports only selected content',async t=>{
  const editor=document.querySelector('#markdownOutput');editor.setSelectionRange(0,5);editor.dispatchEvent(new window.Event('select'));let saved;window.URL.createObjectURL=blob=>{saved=blob;return 'blob:test'};window.URL.revokeObjectURL=()=>{};window.HTMLAnchorElement.prototype.click=function(){};
  document.querySelector('#saveSelection').click();assert.equal(await saved.text(),'First');
 });
+
+test('action SVGs survive localization and icon controls have accessible names',t=>{
+ const {document}=launch(t,'ja');
+ for(const id of ['copyButton','downloadButton','editUndo','editRedo','editReset','saveSelection','downloadAllButton','combineButton','clearButton','mobileMarkdown']){
+  const button=document.getElementById(id);assert.ok(button.querySelector('svg'),id);
+  assert.ok(button.textContent.trim()||button.getAttribute('aria-label'),id);
+ }
+ assert.equal(document.querySelector('#editUndo').title,document.querySelector('#editUndo').getAttribute('aria-label'));
+ document.querySelector('#languageButton').click();
+ for(const id of ['copyButton','downloadButton','editUndo','editRedo','editReset','saveSelection','downloadAllButton','combineButton','clearButton'])assert.ok(document.getElementById(id).querySelector('svg'),id);
+ assert.equal(document.querySelector('#editUndo').title,document.querySelector('#editUndo').getAttribute('aria-label'));
+ assert.ok(document.querySelector('#mobileMarkdown svg path').getAttribute('d').includes('M6 3'));
+});

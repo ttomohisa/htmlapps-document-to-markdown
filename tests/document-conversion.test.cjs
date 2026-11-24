@@ -296,3 +296,23 @@ test('combined documents namespace their local image references',async t=>{
  const out=app.combineResults([{file,result},{file,result}],{headings:true,separator:true});
  assert.equal(out.assets.length,2);assert.notEqual(out.assets[0].path,out.assets[1].path);assert.ok(out.assets.every(asset=>out.markdown.includes(']('+asset.path+')')));assert.match(out.markdown,/\n---\n/);
 });
+
+test('per-file edits survive selection changes and support undo, redo and restore',async t=>{
+ const {app,document,window}=launch(t);await app.addFiles([new File(['Original'],'a.txt'),new File(['Other'],'b.txt')]);await until(()=>!app.busy);
+ const editor=document.querySelector('#markdownOutput');assert.equal(editor.readOnly,false);
+ editor.value='Edited';editor.dispatchEvent(new window.Event('input'));assert.equal(app.items[0].result.markdown,'Edited');
+ app.showSelectedItem(app.items[1]);assert.match(editor.value,/Other/);app.showSelectedItem(app.items[0]);assert.equal(editor.value,'Edited');
+ document.querySelector('#editUndo').click();assert.match(editor.value,/Original/);document.querySelector('#editRedo').click();assert.equal(editor.value,'Edited');document.querySelector('#editReset').click();assert.match(editor.value,/Original/);
+});
+test('editor find and replace updates actual exported Markdown',async t=>{
+ const {app,document,window}=launch(t);await app.addFiles([new File(['one one'],'a.txt')]);await until(()=>!app.busy);
+ const find=document.querySelector('#findText');find.value='one';find.dispatchEvent(new window.Event('input'));document.querySelector('#replaceText').value='two';document.querySelector('#replaceAll').click();assert.equal(app.result.markdown.trim(),'two two');
+});
+test('conversion settings apply on first load and on reconversion',async t=>{
+ const {app,document,window}=launch(t);const encoding=document.querySelector('#sourceEncoding');encoding.value='Windows-1252';encoding.dispatchEvent(new window.Event('change'));await app.addFiles([new File([Uint8Array.of(0xe9)],'legacy.txt')]);await until(()=>!app.busy);assert.equal(app.result.markdown.trim(),'é');
+ encoding.value='Shift_JIS';encoding.dispatchEvent(new window.Event('change'));document.querySelector('#applyConversion').click();await until(()=>!app.busy);assert.equal(app.result.encoding,'Shift_JIS');
+});
+test('outline lists document sections and preview anchors',async t=>{
+ const {app,document}=launch(t);await app.addFiles([fixture('sample.pptx')]);await until(()=>!app.busy);
+ assert.ok([...document.querySelectorAll('#markdownOutline option')].some(o=>o.textContent==='Slide 2'));assert.ok(document.querySelector('#previewSurface [data-source-line]'));
+});

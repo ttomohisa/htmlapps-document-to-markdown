@@ -268,3 +268,31 @@ test('document statistics are labeled definition-list rows and retain zero value
  assert.equal(zeroRows.get('Images'),'0');
  assert.equal(zeroRows.get('Tables'),'0');
 });
+
+test('partial conversion uses original slide and visible-sheet numbers',async t=>{
+ const {app}=launch(t);
+ const ppt=await app.convertFile(fixture('sample.pptx'),{settings:{range:'2'}});
+ assert.match(ppt.markdown,/<!-- Slide 2 -->/);assert.doesNotMatch(ppt.markdown,/Quarterly Review/);assert.equal(ppt.stats.slides,1);assert.equal(ppt.catalog.length,2);
+ const xls=await app.convertFile(fixture('sample.xlsx'),{settings:{range:'2'}});
+ assert.match(xls.markdown,/Dates & Formulas/);assert.doesNotMatch(xls.markdown,/売上 2026/);assert.equal(xls.stats.sheets,1);
+ await assert.rejects(app.convertFile(fixture('sample.pptx'),{settings:{range:'3'}}),/INVALID_RANGE/);
+});
+test('partial save selects source units without unrelated image assets',async t=>{
+ const {app}=launch(t);const r=await app.convertFile(fixture('sample.pptx'));
+ const part=app.selectPartialOutput(r,'2');assert.match(part.markdown,/Risks/);assert.equal(part.assets.length,0);
+ assert.throws(()=>app.selectPartialOutput(r,'0'),/INVALID_RANGE/);
+});
+test('explicit decoding can override auto detection',async t=>{
+ const {app}=launch(t);const result=await app.convertFile(new File([Uint8Array.of(0xe9)],'legacy.txt'),{settings:{encoding:'Windows-1252'}});
+ assert.equal(result.markdown.trim(),'é');assert.equal(result.encoding,'Windows-1252');
+});
+test('output options preserve code and default output, omit requested features',async t=>{
+ const {app}=launch(t);const r=await app.convertFile(fixture('sample.pptx'),{settings:{images:false,notes:false,links:false,headings:false,tables:false,formatting:false}});
+ assert.equal(r.assets.length,0);assert.doesNotMatch(r.markdown,/Speaker Notes|!\[|https:\/\/example\.com|^## /m);assert.match(r.markdown,/Region\tRevenue/);
+ const code='**bold**\n\n\x60\x60\x60\n**literal**\n\x60\x60\x60\n';assert.match(app.transformOutput(code,{headings:true,formatting:false,links:true,tables:true,images:true}),/\*\*literal\*\*/);
+});
+test('combined documents namespace their local image references',async t=>{
+ const {app}=launch(t);const file=fixture('sample.docx'),result=await app.convertFile(file);
+ const out=app.combineResults([{file,result},{file,result}],{headings:true,separator:true});
+ assert.equal(out.assets.length,2);assert.notEqual(out.assets[0].path,out.assets[1].path);assert.ok(out.assets.every(asset=>out.markdown.includes(']('+asset.path+')')));assert.match(out.markdown,/\n---\n/);
+});

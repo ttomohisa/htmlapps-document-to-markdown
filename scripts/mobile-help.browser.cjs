@@ -10,11 +10,14 @@ const disclosureSelector = "#helpDialog details.build-details";
 
 
 async function prepareApp(page,width,label){
+ assert.equal(await page.locator('#heroTitle').count(),0,label+': no hero title');
+ assert.equal(await page.locator('[data-i18n="dropSub"]').count(),0,label+': no redundant drop subtitle');
+ assert.equal(await page.locator('#pageIntro').isVisible(),true,label+': initial description');
  assert.equal(await page.locator('#appMobileBottomBar').isVisible(),width<=600,label+': functional page tabs');
  if(width<=600)assert.ok(await page.locator('#appMobileBottomBar').evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight;}),label+': functional tabs fit');
 }
 async function smoke(page,results,file){
- await page.locator('#fileInput').setInputFiles({name:'synthetic-document.html',mimeType:'text/html',buffer:Buffer.from('<!doctype html><h1>Synthetic heading</h1><p>Local sample paragraph.</p><ul><li>First</li><li>Second</li></ul>')});await page.waitForFunction(()=>!document.querySelector('#downloadButton').disabled);await page.locator('#mobileMarkdown').click();await page.locator('#outputFilename').fill('mobile-help-document');
+ await page.locator('#fileInput').setInputFiles({name:'synthetic-document.html',mimeType:'text/html',buffer:Buffer.from('<!doctype html><h1>Synthetic heading</h1><p>Local sample paragraph.</p><ul><li>First</li><li>Second</li></ul>')});await page.waitForFunction(()=>!document.querySelector('#downloadButton').disabled);assert.equal(await page.locator('#pageIntro').isVisible(),false);assert.equal(await page.locator('#fileIntro').isVisible(),false);await page.locator('#mobileInfo').click();assert.ok(await page.locator('dl.stats-grid .stat-row').count()>0);assert.equal(await page.locator('.stat-card').count(),0);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:path.join(results,file.includes('self-extract')?'info-mobile-loader.png':'info-mobile-readable.png')});await page.locator('#mobileMarkdown').click();await page.locator('#outputFilename').fill('mobile-help-document');
  const pending=page.waitForEvent('download');await page.locator('#downloadButton').click();const download=await pending;assert.equal(download.suggestedFilename(),'mobile-help-document.md');const target=path.join(results,file.includes('self-extract')?'synthetic-loader.md':'synthetic-readable.md');await download.saveAs(target);const markdown=fs.readFileSync(target,'utf8');assert.match(markdown,/# Synthetic heading/);assert.match(markdown,/Local sample paragraph/);assert.match(markdown,/First/);assert.match(markdown,/Second/);
  console.log('PASS synthetic HTML to edited-name Markdown '+file);
 }
@@ -32,6 +35,8 @@ async function conversionSmoke(page,errors){
  await load('sample.docx',/テスト文書/);
  assert.equal(await page.locator('#previewSurface img').count(),1);
  await load('sample.pptx',/Quarterly Review/);
+ assert.equal(await page.locator('#pageIntro').isVisible(),false);assert.ok(await page.locator('dl.stats-grid .stat-row').count()>=8);assert.equal(await page.locator('.stat-card').count(),0);
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  await load('sample.xlsx',/売上 2026/);
  await load('sample.pdf',/日本語PDFテスト/);
  const start=errors.length;

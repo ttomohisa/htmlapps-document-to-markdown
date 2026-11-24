@@ -232,3 +232,33 @@ test('HTML conversion cooperates with cancellation',async t=>{
  const promise=app.convertFile(new File(['<div>text</div>'.repeat(500)],'large.html'),control);
  setTimeout(()=>{control.cancelRequested=true},0);await assert.rejects(promise,/CANCELLED/);
 });
+
+test('intro has no title or redundant drop subtitle and hides until queue is empty',async t=>{
+ const {app,document}=launch(t);
+ const intro=document.querySelector('#pageIntro'),fileIntro=document.querySelector('#fileIntro');
+ assert.equal(document.querySelector('#heroTitle'),null);
+ assert.equal(document.querySelector('[data-i18n="dropSub"]'),null);
+ assert.equal(intro.classList.contains('hidden'),false);
+ await app.addFiles([new File(['# Sample'],'one.txt')]);await until(()=>!app.busy);
+ assert.equal(intro.classList.contains('hidden'),true);
+ assert.equal(fileIntro.classList.contains('hidden'),true);
+ app.removeItem(app.items[0].id);
+ assert.equal(intro.classList.contains('hidden'),false);
+ document.querySelector('#appToastAction').click();
+ assert.equal(intro.classList.contains('hidden'),true);
+ app.resetSession();
+ assert.equal(intro.classList.contains('hidden'),false);
+ assert.equal(fileIntro.classList.contains('hidden'),false);
+});
+test('document statistics are labeled definition-list rows and retain zero values',async t=>{
+ const {app,document}=launch(t,'ja');
+ await app.addFiles([fixture('sample.pptx')]);await until(()=>!app.busy);
+ const stats=document.querySelector('dl.stats-grid');
+ assert.ok(stats);
+ assert.equal(stats.querySelector('.stat-card'),null);
+ const rows=[...stats.querySelectorAll('.stat-row')].map(row=>[row.querySelector('dt').textContent,row.querySelector('dd').textContent]);
+ assert.ok(rows.some(([label])=>label==='発表者ノート'));
+ assert.ok(rows.some(([,value])=>value==='0')||rows.length>=8);
+ document.querySelector('#languageButton').click();
+ assert.ok([...document.querySelectorAll('.stats-grid dt')].some(el=>el.textContent==='Speaker Notes'));
+});

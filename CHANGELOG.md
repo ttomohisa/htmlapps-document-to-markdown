@@ -2,6 +2,9 @@
 
 ## 1.1.0 - 2026-11-24
 
+- Remove the hero title and redundant drop instructions; hide initial explanatory text when files are loaded and restore it when the queue is empty.
+- Use a downward drop arrow, flat file rows, restrained panel borders and compact document-statistic definition lists.
+
 - Improve preview with nested lists, ordered-list starts and local embedded raster images; no remote images are requested.
 - Add cancellation checkpoints for Word document blocks and HTML structural containers; report unsupported spreadsheet and presentation features.
 - Simplify bilingual interface and Help; add offline browser fixture checks and versioned release automation.

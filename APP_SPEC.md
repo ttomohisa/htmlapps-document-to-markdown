@@ -358,3 +358,8 @@ Legacy `.doc` / `.ppt`, AI summarization, external AI APIs, remote URL conversio
 - Preview nested list hierarchy and ordered start values. Word and HTML yield between structural blocks; parsing and individual heavy blocks are still synchronous.
 - Report hidden slides, merged presentation cells, spreadsheet hyperlink targets and non-reproduced numeric formats.
 - Release only from verified main builds, with versioned tags and both standalone HTML variants.
+
+### Compact workspace (v1.1.0)
+
+- No separate hero heading. Show the introduction and initial file-limit text only while the file queue is empty; restore them when the final item is removed or the session is cleared. Keep Help accessible at all times.
+- Use a downward arrow into a tray for the drop target. Present document statistics as label/value definition-list rows, including zero counts, with one column at narrow mobile widths. Use flat separators and restrained panel borders rather than individual statistic cards.
